@@ -1,0 +1,31 @@
+Project Structure
+----------------------------------------------------------------------
+
+    src/lib/<name of lib> - source code that builds libraries
+    src/exe/<name of exe> - source code that builds executables
+
+    test/lib/<name of lib being tested> - unit tests (using GTest)
+
+    integration-test - integration tests
+
+    build/... - generated: build products
+
+    bin/ - generated: installed binaries
+
+
+Building/Testing
+----------------------------------------------------------------------
+CMake is used. CMakeLists.txt are used to generate Makefiles. Look at
+them and understand how to add source code etc.
+
+To compile and link, run:
+    cmake .
+    make
+
+To run unit tests, run:
+    ctest 
+        or
+    ctest -V (for verbose output)
+
+To run integration tests, from the integration-test directory and run:
+    ur test run --recurse
