@@ -10,17 +10,19 @@ include(ProjectHelper)
 
 include_directories("src/lib")
 
-if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE release CACHE STRING 
-        "Options: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
-    message("No CMAKE_BUILD_TYPE specified, defaulting to release")
+# TODO: replace with FindSamtools.cmake
+set(SAMTOOLS_INC /gsc/pkg/bio/samtools/samtools-0.1.6)
+set(SAMTOOLS_LIB /gsc/pkg/bio/samtools/samtools-0.1.6)
+include_directories(${SAMTOOLS_INC})
+link_directories(${SAMTOOLS_LIB})
+
+if (CMAKE_COMPILER_IS_GNUCC)
+    set(CMAKE_C_FLAGS "-Wall")
 endif ()
 
-if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_C_FLAGS "-std=c99")
+if (CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "-Wall -ansi -pedantic")
 endif ()
-
 
 # unit tests
 find_package(GTest)
