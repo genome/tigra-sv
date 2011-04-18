@@ -139,7 +139,7 @@ string ftos(float i){
     return i_str_stream.str();
 }
 
-
+// tools to be used in the following classes
 class tools {
 public:
 /*	// split rReads by the sep, sep could be extended continuously, results to be splitted
@@ -447,6 +447,7 @@ public:
 	
 };
 
+// generate kmer by hh[kmer]=number_of_kmer, in which number_of_kmer < C && > c
 class kmergen {
 public:
 	int k;// = 25;
@@ -564,6 +565,7 @@ public:
 	}	
 };
 
+// with HH generated in graphgen, walk through with the input(I) and output(O) alleles, and connect them to form a contig, and store it to Contigs[node]=ContigsSeq
 class walknodes {
 public:
 	int k;// = 25;
@@ -996,6 +998,7 @@ int tmp = HH.size();
 	}
 };
 
+// track from the end of a contig which does not have any branches, and see how long it could go: Contigtips[Contignum]=TipLength
 class processtips {
 
 public:
@@ -1491,7 +1494,7 @@ public:
 };
 
 
-
+// recover low frequency kmers in high quality reads that bridge separated non-tip proto-contig graphs
 class addbridgekmer {
 	
 public:
@@ -1852,6 +1855,7 @@ public:
 	}
 };
 
+// extend proto-contigs to contigs by removing tips and collapse bubbles with heuristic cut-offs
 class walkcontig {
 
 public:
@@ -3128,7 +3132,7 @@ public:
 	}	
 };
 		
-
+// generate a graph of the kmer created in kmergen, HH, so that we know of the numbers of each input allele (on the left) and the output allele (on the right) of each kmer in hh. Will not connect the two at different status: one on a branch, the other as a unique one.
 class graphgen{
 public:
 	
@@ -3526,7 +3530,8 @@ rrd = tl.tr(rrd, "ATGC", "TACG");
 		PRF.close();
 	}
 };*/
-			
+	
+// connect the contigs and make a graph
 class allpaths{
 	
 public:
@@ -5414,7 +5419,7 @@ public:
 		cout << endl;
 		
 		cout << "#Version-" << version;
-		cout << "\tParameters: ";
+		cout << "\tParameters: \n";
 		// foreach my $opt(keys %opts){printf "\t%s",join(':',$opt,$opts{$opt});} print "\n"; skip
 		//if($opts{k}){ skip
 		//cout << "#Chr1\tPos1\tOrientation1\tChr2\tPos2\tOrientation2\tType\tSize\tScore\tnum_Reads\tnum_Reads_lib\tAllele_frequency\tVersion\tRun_Param\tAsmChr1\tAsmStart1\tAsmChr2\tAsmStart2\tAsmOri\tAsmSize\tAsmHet\tAsmScore\tAlnScore\twAsmScore\n";
