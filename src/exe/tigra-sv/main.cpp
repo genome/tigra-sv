@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 
+#include <version.h>
 #include <iostream>
 #include <fstream>
 //#include <strstream>
@@ -64,7 +65,6 @@ namespace std
 
 using namespace std;
 
-string version ("tigra_sv-0.0.1");
 string options ("");
 
 typedef struct eqstr
@@ -4551,7 +4551,8 @@ public:
 			fprintf(stderr, "	-N INT			Minimal number of degrees for a node to consider as start of alternative haplotype [%d]\n", min_degree);
 			fprintf(stderr,	"	-g STRING		Save assembly graph(png) in FILE\n");
 			fprintf(stderr, "       -d INT          Turn on debug mode, generate intermediate files\n");
-			fprintf(stderr, "Version: %s\n", version);
+			fprintf(stderr, "Version: %s (commit %s)\n", __g_prog_version, __g_commit_hash);
+
 			fprintf(stderr, "\n");
 			return 1;
 		}
@@ -5592,7 +5593,7 @@ int main(int argc, char *argv[])
 		//fprintf(stderr, "	-Q INT		Minimal BreakDancer score required for analysis [%d]\n", qual_threshold);
 		//fprintf(stderr, "	-L STRING	Ignore calls supported by libraries that contains (comma separated) STRING\n");
 
-		fprintf(stderr, "Version: %s\n",version.c_str());
+		fprintf(stderr, "Version: %s (commit %s)\n", __g_prog_version, __g_commit_hash);
 		return 1;
 	}
 	
