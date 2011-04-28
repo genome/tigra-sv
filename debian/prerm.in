@@ -1,5 +1,5 @@
 #!/bin/sh
-# prerm script for bincoeff
+# prerm script for tigra-sv
 #
 # see: dh_installdeb(1)
 
@@ -15,7 +15,7 @@
 # the debian-policy package
 
 
-EXECUTABLES="bincoeff"
+EXECUTABLES="tigra-sv"
 
 set -e
 
