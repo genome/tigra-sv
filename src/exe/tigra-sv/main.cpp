@@ -4871,9 +4871,9 @@ public:
 					cr.type = fields[6];
 					cr.size = abs(atoi(fields[7].c_str()));
                                         
-					if(fields.size()>9) cr.score = atoi(fields[8].c_str()) ;
-					if(fields.size()>10) cr.nreads = atoi(fields[9].c_str()) ;
-					if(fields.size()>11) cr.nreads_lib = fields[10].c_str() ;
+					if(fields.size()>8) cr.score = atoi(fields[8].c_str()) ;
+					if(fields.size()>9) cr.nreads = atoi(fields[9].c_str()) ;
+					if(fields.size()>10) cr.nreads_lib = fields[10].c_str() ;
 					if(fields.size() > 11){
                                             for(int j = 11; j < fields.size(); j++)
     					        cr.extra.push_back(fields[j]);
@@ -4892,8 +4892,10 @@ public:
 					int ignore = 0;
 					for(int i = 0; i < nlibs.size(); i++){
 						string nlib = nlibs[i];
-						if(cr.nreads_lib.find(nlib) != string::npos)
+						if(cr.nreads_lib.find(nlib) != string::npos) {
 							ignore = 1;
+							break;
+						}
 					}
 					
 					// Include Copy Number Altered events if available
