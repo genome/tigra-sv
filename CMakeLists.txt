@@ -17,11 +17,11 @@ include_directories(${SAMTOOLS_INC})
 link_directories(${SAMTOOLS_LIB})
 
 if (CMAKE_COMPILER_IS_GNUCC)
-    set(CMAKE_C_FLAGS "-Wall")
+#    set(CMAKE_C_FLAGS "-Wall")
 endif ()
 
 if (CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS "-Wall -ansi -pedantic")
+#    set(CMAKE_CXX_FLAGS "-Wall -ansi -pedantic")
 endif ()
 
 # unit tests
