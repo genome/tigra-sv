@@ -23,11 +23,6 @@ p. install {{ page.module_details.name }}:
 
 p(terminal). ==sudo apt-get install tigra-sv{{ page.version_suffix }}==
 
-h2. Other Platforms/source code:
-==<hr />==
-
-p. The full source code and build instructions are available from the "github project page":http://github.com/genome/tigra-sv.
-
 h2. Help:
 ==<hr />==
  
