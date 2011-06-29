@@ -1,0 +1,57 @@
+=head1 NAME
+
+tigra_sv - a tool that conducts targeted local assembly of structural variants (SV).
+
+=head1 DESCRIPTION
+
+Tigra_sv is a program that conducts targeted local assembly of structural variants (SV) using
+the iterative graph routing assembly (TIGRA) algorithm (L. Chen, unpublished). It takes as input
+a list of putative SV calls and a set of bam files that contain reads mapped to a reference genome
+such as NCBI build36. For each SV call, it assembles the set of reads that were mapped or partially
+mapped to the region of interest (ROI) in the corresponding bam files. Instead of outputing a single
+consensus sequence, tigra_sv outputs all the alternative alleles in the ROI as long as they received 
+sufficient sequence coverage (usually >= 2x). It is shown that tigra_sv is quite effective at improving 
+the SV prediction accuracy in short reads analysis and can produce accurate breakpoint sequences that 
+are valuable to understand the origin, mechanism and pathology underlying the SVs.
+
+
+=head1 SYNOPSIS
+
+tigra_sv <SV file> <a.bam> <b.bam> ...
+
+tigra_sv <SV file> <bam_list_file>
+
+=head1 OPTIONS
+
+-A INT     Esimated maximal insert size [500]
+-l INT     Flanking size [500]
+-w INT     Pad local reference by additional [200] bp on both ends
+-q INT     Only assemble reads with mapping quality > [1]
+-N INT     Number of mismatches required to be tagged as poorly mapped [5]
+-p INT     Ignore cases that have average read depth greater than [1000]
+-Q INT     Minimal BreakDancer score required for analysis [0]
+-I STRING  Read intermediate files from DIR instead of creating them
+-L STRING  Ignore calls supported by libraries that contains (comma separated) STRING
+-c STRING  Specify chromosome for position 2 to parallelzing job
+
+-b         Check when the format is in breakdancer
+-r         Whether write reference to a file with .ref.fa as the suffix
+-d         Whether to write dumped reads to a file with .fa as the suffix
+-R         Reference file location with the full path
+
+=head1 EXAMPLES
+
+Run pcr format SV calls:
+tigra_sv washu_pilot2_trio_large_deletions.pcr pcr_filelist.txt
+
+Run breakdancer format SV calls:
+tigra_sv -b breakdancer.sv /gscuser/tumor.bam /gscuser/normal.bam
+
+
+=head1 AUTHOR
+
+Xian Fan, Ken Chen, Lei Chen 
+
+=head1 DISCLAIMER
+
+This software is provided "as is" without warranty of any kind.
