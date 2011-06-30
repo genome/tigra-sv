@@ -2,6 +2,7 @@
 
 tigra_sv - a tool that conducts targeted local assembly of structural variants (SV).
 
+
 =head1 DESCRIPTION
 
 Tigra_sv is a program that conducts targeted local assembly of structural variants (SV) using
@@ -21,7 +22,9 @@ tigra_sv <SV file> <a.bam> <b.bam> ...
 
 tigra_sv <SV file> <bam_list_file>
 
+
 =head1 OPTIONS
+
 -A INT
     Esimated maximal insert size [500]
 
@@ -64,18 +67,22 @@ tigra_sv <SV file> <bam_list_file>
 -R
     Reference file location with the full path
 
+
 =head1 EXAMPLES
 
 Run pcr format SV calls:
+
 tigra_sv washu_pilot2_trio_large_deletions.pcr pcr_filelist.txt
 
 Run breakdancer format SV calls:
+
 tigra_sv -b breakdancer.sv /gscuser/tumor.bam /gscuser/normal.bam
 
 
 =head1 AUTHOR
 
 Xian Fan, Ken Chen, Lei Chen 
+
 
 =head1 DISCLAIMER
 
