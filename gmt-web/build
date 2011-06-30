@@ -10,7 +10,8 @@ use File::Slurp qw/read_file write_file/;
 use File::Spec::Functions;
 use above 'UR';
 
-my $mydir = abs_path(dirname($0));
+#my $mydir = abs_path(dirname($0));
+my $mydir = abs_path('.');
 my $output_file = catfile($mydir, "generated", "documentation.html");
 make_path(dirname($output_file));
 my $pod_file = catfile($mydir, "..", "doc", "tigra_sv.pod");
