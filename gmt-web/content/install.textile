@@ -30,4 +30,5 @@ p. To get help on tigra-sv, simply run the command with no options:
 
 p(terminal). ==tigra-sv==
 
+p. Since tigra_sv uses samtools C API. Please install samtools (http://samtools.sourceforge.net/). Please also modify the Makefile to link the compiler to the correct locations of samtools in your system.
 
