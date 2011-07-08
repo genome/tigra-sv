@@ -7,9 +7,10 @@ menu:
       href: documentation.html
     - text: Install
       href: install.html
- 
+
 module_details:
     name: tigra-sv
     icon: res/images/icon_48.png
+    icon_16: res/images/icon_16.png
 
 download_link: install.html
