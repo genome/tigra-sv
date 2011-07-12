@@ -1,34 +1,5 @@
-h2. Download (Ubuntu 8.04+)
-==<hr />==
-
-p. To install the the base system, run this in a terminal:
-
-p(terminal). ==wget -q -O - http://apt.genome.wustl.edu/ubuntu/files/install.sh | sudo bash==
-
-p. To install tigra-sv, run:
-
-p(terminal). ==genome install tigra-sv{{ page.version_suffix }}==
-
-h3. Behind the Scenes:
-
-p. Genome Modeling System uses the native apt package manager, and links to an apt repository served from apt.genome.wustl.edu for systematic updates.
-
-p. repository linkage:
-
-p(terminal). ==sudo apt-add-respository "deb http://apt.genome.wustl.edu lucid-genome main"==
-==wget http://apt.genome.wustl.edu/ubuntu/files/genome-center.asc | sudo apt-key add==
-==sudo apt-get update==
-
-p. install {{ page.module_details.name }}:
-
-p(terminal). ==sudo apt-get install tigra-sv{{ page.version_suffix }}==
-
-h2. Help:
-==<hr />==
- 
-p. To get help on tigra-sv, simply run the command with no options:
-
-p(terminal). ==tigra-sv==
-
+{% assign ubuntu_versions = "Ubuntu 8.04+" %}
+{% include install/download.html %}
+{% include install/help.html %}
 p. Since tigra_sv uses samtools C API. Please install samtools (http://samtools.sourceforge.net/). Please also modify the Makefile to link the compiler to the correct locations of samtools in your system.
 
