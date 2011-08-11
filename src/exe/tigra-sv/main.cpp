@@ -4696,6 +4696,7 @@ public:
 	int skip_call; // z
         int min_size_threshold; // M
         int max_node; // h
+        string kmers;
 	
         assemble(){		
 		qual_threshold = 0;
@@ -5354,7 +5355,7 @@ public:
 		//TG.reference_for_screen = datadir + "/" + prefix + ".ref.fa";
 		TG.reference_for_screen = ref_string;
 		TG.estimate_STR = "SV";
-		TG.kmer_size = "15,25";
+        TG.kmer_size = kmers;
                 TG.max_node = max_node;
                 float tmp1 = avgdepth/100.0;
                 tmp1 = (tmp1 < 2) ? 2:tmp1;
@@ -5548,8 +5549,9 @@ int main(int argc, char *argv[])
         int skip_call = 0; // z skip running calls before this number
         int min_size_threshold = 3; // M skip those with input size smaller than 3
 	string reference_file = "/gscmnt/839/info/medseq/reference_sequences/NCBI-human-build36/all_sequences.fa"; // R reference file location; full path
+    string kmers = "15,25";
 	
-	while((c = getopt(argc, argv, "A:l:w:q:N:p:I:Q:L:brdR:c:M:h:")) >= 0){
+	while((c = getopt(argc, argv, "A:l:w:q:N:p:I:Q:L:brdR:c:M:h:k:")) >= 0){
 		switch(c) {
 			case 'A': estimate_max_ins = atoi(optarg); break;
 			case 'l': flanking_size = atoi(optarg); break;
@@ -5568,6 +5570,7 @@ int main(int argc, char *argv[])
                         case 'z': skip_call = atoi(optarg); break;
                         case 'M': min_size_threshold = atoi(optarg); break;          
                         case 'h': max_node = atoi(optarg); break;
+                        case 'k': kmers = string(optarg); break;
 			default: fprintf(stderr, "Unrecognized option '-%c'.\n", c);
 				return 1;
 		}
@@ -5590,6 +5593,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "	-b		Check when the input format is breakdancer\n");
                 fprintf(stderr, "       -M INT          Skip those calls with input size smaller than [%d]\n", min_size_threshold);
                 fprintf(stderr, "       -h INT          Maximum node to assemble, by default [%d]\n", max_node);
+                fprintf(stderr, "	-k STR		List of kmer sizes to use as a comma delimited string [%s]\n", kmers.c_str());
 		//fprintf(stderr, "	-Q INT		Minimal BreakDancer score required for analysis [%d]\n", qual_threshold);
 		//fprintf(stderr, "	-L STRING	Ignore calls supported by libraries that contains (comma separated) STRING\n");
 
@@ -5614,6 +5618,7 @@ int main(int argc, char *argv[])
         AS.skip_call = skip_call;
         AS.min_size_threshold = min_size_threshold;
         AS.max_node = max_node;
+        AS.kmers = kmers;
 	
 	if(breakdancer_format == 1)
 		AS.BreakDancer_file = argv[optind];
