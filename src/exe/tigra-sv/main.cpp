@@ -4995,8 +4995,8 @@ public:
 					refsize = end - start + 1 + 2*flanking_size + 2*pad_local_ref;
 				}
 				posstr = chr1 + "_" + itos(start1 - pad_local_ref) + "_" + chr1 + "_" + itos(start1 - pad_local_ref) + "_" + type + "_" + itos(size) + "_" + ori; // this may contain a bug
-				pos_1 = itos(start1 - pad_local_ref);
-				pos_2 = itos(start1 - pad_local_ref);
+				pos_1 = itos(max(start1 - pad_local_ref,0));
+				pos_2 = itos(max(start1 - pad_local_ref,0));
 				// samtools view bam chr1:start1-end2;
 				//string tmp = "samtools view " + fbam + " " + chr1 + ":" + itos(start1) + "-" + itos(end2);
 				//samtools.push_back(tmp);
@@ -5021,8 +5021,8 @@ public:
 						refsize = 2*(flanking_size + pad_local_ref) + 1;
 					}					
 					posstr = chr1 + "_" + itos(start - flanking_size - pad_local_ref) + "_" + chr2 + "_" + itos(end - flanking_size - pad_local_ref) + "_" + type + "_" + itos(size) + "_" + ori;
-					pos_1 = itos(start - flanking_size - pad_local_ref);
-					pos_2 = itos(end - flanking_size - pad_local_ref);
+					pos_1 = itos(max(start - flanking_size - pad_local_ref,0));
+					pos_2 = itos(max(end - flanking_size - pad_local_ref,0));
 				}
 				else if(size > 99999){
 					if(refs.size() == 0){
@@ -5044,8 +5044,8 @@ public:
 					makeup_size = (end - flanking_size) - (start + flanking_size) - 1;
 					concatenated_pos = 2*flanking_size + pad_local_ref;
 					posstr = chr1 + "_" + itos(start - flanking_size - pad_local_ref) + "_" + chr2 + "_" + itos(end - 3*flanking_size - pad_local_ref) + "_" + type + "_" + itos(size) + "_" + ori;
-					pos_1 = itos(start - flanking_size - pad_local_ref);
-					pos_2 = itos(end - 3*flanking_size - pad_local_ref);
+					pos_1 = itos(max(start - flanking_size - pad_local_ref,0));
+					pos_2 = itos(max(end - 3*flanking_size - pad_local_ref,0));
 				}
 				else {
 					if(refs.size() == 0){
@@ -5058,8 +5058,8 @@ public:
 						refsize = end - start + 1 + 2*(flanking_size + pad_local_ref);	
 					}
 					posstr = chr1 + "_" + itos(start1 - pad_local_ref) + "_" + chr1 + "_" + itos(start1 - pad_local_ref) + "_" + type + "_" + itos(size) + "_" + ori;
-					pos_1 = itos(start1 - pad_local_ref);
-					pos_2 = itos(start1 - pad_local_ref);
+					pos_1 = itos(max((start1 - pad_local_ref),0));
+					pos_2 = itos(max(start1 - pad_local_ref,0));
 				}
 				
 				string reg1, reg2;
