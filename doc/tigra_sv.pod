@@ -5,13 +5,13 @@ tigra_sv - a tool that conducts targeted local assembly of structural variants (
 
 =head1 DESCRIPTION
 
-Tigra_sv is a program that conducts targeted local assembly of structural variants (SV) using
+TIGRA_SV is a program that conducts targeted local assembly of structural variants (SV) using
 the iterative graph routing assembly (TIGRA) algorithm (L. Chen, unpublished). It takes as input
 a list of putative SV calls and a set of bam files that contain reads mapped to a reference genome
 such as NCBI build36. For each SV call, it assembles the set of reads that were mapped or partially
 mapped to the region of interest (ROI) in the corresponding bam files. Instead of outputing a single
-consensus sequence, tigra_sv outputs all the alternative alleles in the ROI as long as they received 
-sufficient sequence coverage (usually >= 2x). It is shown that tigra_sv is quite effective at improving 
+consensus sequence, TIGRA_SV outputs all the alternative alleles in the ROI as long as they received 
+sufficient sequence coverage (usually >= 2x). It is shown that TIGRA_SV is quite effective at improving 
 the SV prediction accuracy in short reads analysis and can produce accurate breakpoint sequences that 
 are valuable to understand the origin, mechanism and pathology underlying the SVs.
 
