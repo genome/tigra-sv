@@ -2,11 +2,11 @@
 
 ## Run pcr format SV calls:
 
-	tigra_sv washu_pilot2_trio_large_deletions.pcr pcr_filelist.txt
+    tigra_sv washu_pilot2_trio_large_deletions.pcr pcr_filelist.txt
 
 ## Run breakdancer format SV calls:
 
-	tigra_sv -b breakdancer.sv /gscuser/tumor.bam /gscuser/normal.bam
+    tigra_sv -b breakdancer.sv /gscuser/tumor.bam /gscuser/normal.bam
 
 # TIGRA_SV
 
@@ -29,9 +29,9 @@ are valuable to understand the origin, mechanism and pathology underlying the SV
 
 ## SYNOPSIS
 
-tigra_sv <SV file> <a.bam> <b.bam> ...
+    tigra_sv <SV file> <a.bam> <b.bam> ...
 
-tigra_sv <SV file> <bam_list_file>
+    tigra_sv <SV file> <bam_list_file>
 
 
 ## OPTIONS
@@ -96,11 +96,11 @@ tigra_sv <SV file> <bam_list_file>
 
 
 
-=head1 AUTHOR
+# AUTHOR
 
 Xian Fan, Ken Chen, Lei Chen 
 
 
-=head1 DISCLAIMER
+# DISCLAIMER
 
 This software is provided "as is" without warranty of any kind.
