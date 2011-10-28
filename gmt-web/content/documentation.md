@@ -5,41 +5,41 @@
 ## Run pcr format SV calls:
 
 <p class='terminal' markdown='1'>
-tigra_sv washu_pilot2_trio_large_deletions.pcr pcr_filelist.txt
+tigra-sv washu_pilot2_trio_large_deletions.pcr pcr_filelist.txt
 </p>
 
 ## Run breakdancer format SV calls:
 
 <p class='terminal' markdown='1'>
-tigra_sv -b breakdancer.sv /gscuser/tumor.bam /gscuser/normal.bam
+tigra-sv -b breakdancer.sv /gscuser/tumor.bam /gscuser/normal.bam
 </p>
 
-# TIGRA_SV
+# TIGRA-SV
 
 ***
 
 ## NAME
-TIGRA_SV - a tool that conducts targeted local assembly of structural variants (SV).
+TIGRA-SV - a tool that conducts targeted local assembly of structural variants (SV).
 
 
 ## DESCRIPTION
 
-TIGRA_SV is a program that conducts targeted local assembly of structural variants (SV) using
+TIGRA-SV is a program that conducts targeted local assembly of structural variants (SV) using
 the iterative graph routing assembly (TIGRA) algorithm (L. Chen, unpublished). It takes as input
 a list of putative SV calls and a set of bam files that contain reads mapped to a reference genome
 such as NCBI build36. For each SV call, it assembles the set of reads that were mapped or partially
 mapped to the region of interest (ROI) in the corresponding bam files. Instead of outputing a single
-consensus sequence, TIGRA_SV outputs all the alternative alleles in the ROI as long as they received 
-sufficient sequence coverage (usually >= 2x). It is shown that TIGRA_SV is quite effective at improving 
+consensus sequence, TIGRA-SV outputs all the alternative alleles in the ROI as long as they received 
+sufficient sequence coverage (usually >= 2x). It is shown that TIGRA-SV is quite effective at improving 
 the SV prediction accuracy in short reads analysis and can produce accurate breakpoint sequences that 
 are valuable to understand the origin, mechanism and pathology underlying the SVs.
 
 
 ## SYNOPSIS
 
-tigra_sv sv_file a.bam b.bam ...
+tigra-sv sv_file a.bam b.bam ...
 
-tigra_sv sv_file bam_list_file
+tigra-sv sv_file bam_list_file
 
 ## OPTIONS
 

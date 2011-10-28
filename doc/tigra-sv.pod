@@ -1,26 +1,26 @@
 =head1 NAME
 
-tigra_sv - a tool that conducts targeted local assembly of structural variants (SV).
+TIGRA-SV - a tool that conducts targeted local assembly of structural variants (SV).
 
 
 =head1 DESCRIPTION
 
-TIGRA_SV is a program that conducts targeted local assembly of structural variants (SV) using
+TIGRA-SV is a program that conducts targeted local assembly of structural variants (SV) using
 the iterative graph routing assembly (TIGRA) algorithm (L. Chen, unpublished). It takes as input
 a list of putative SV calls and a set of bam files that contain reads mapped to a reference genome
 such as NCBI build36. For each SV call, it assembles the set of reads that were mapped or partially
 mapped to the region of interest (ROI) in the corresponding bam files. Instead of outputing a single
-consensus sequence, TIGRA_SV outputs all the alternative alleles in the ROI as long as they received 
-sufficient sequence coverage (usually >= 2x). It is shown that TIGRA_SV is quite effective at improving 
+consensus sequence, TIGRA-SV outputs all the alternative alleles in the ROI as long as they received 
+sufficient sequence coverage (usually >= 2x). It is shown that TIGRA-SV is quite effective at improving 
 the SV prediction accuracy in short reads analysis and can produce accurate breakpoint sequences that 
 are valuable to understand the origin, mechanism and pathology underlying the SVs.
 
 
 =head1 SYNOPSIS
 
-tigra_sv <SV file> <a.bam> <b.bam> ...
+tigra-sv <SV file> <a.bam> <b.bam> ...
 
-tigra_sv <SV file> <bam_list_file>
+tigra-sv <SV file> <bam_list_file>
 
 
 =head1 OPTIONS
@@ -72,11 +72,11 @@ tigra_sv <SV file> <bam_list_file>
 
 Run pcr format SV calls:
 
-tigra_sv washu_pilot2_trio_large_deletions.pcr pcr_filelist.txt
+tigra-sv washu_pilot2_trio_large_deletions.pcr pcr_filelist.txt
 
 Run breakdancer format SV calls:
 
-tigra_sv -b breakdancer.sv /gscuser/tumor.bam /gscuser/normal.bam
+tigra-sv -b breakdancer.sv /gscuser/tumor.bam /gscuser/normal.bam
 
 
 =head1 AUTHOR

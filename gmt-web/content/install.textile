@@ -1,5 +1,5 @@
 {% assign ubuntu_versions = "Ubuntu 8.04+" %}
 {% include install/download.html %}
 {% include install/help.html %}
-p. Since TIGRA_SV uses samtools C API. Please install samtools (http://samtools.sourceforge.net/). Please also modify the Makefile to link the compiler to the correct locations of samtools in your system.
+p. Since TIGRA-SV uses samtools C API. Please install samtools (http://samtools.sourceforge.net/). Please also modify the Makefile to link the compiler to the correct locations of samtools in your system.
 
