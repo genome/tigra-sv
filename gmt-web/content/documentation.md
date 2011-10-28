@@ -37,11 +37,9 @@ are valuable to understand the origin, mechanism and pathology underlying the SV
 
 ## SYNOPSIS
 
-<p class='terminal' markdown='1'>
 tigra_sv sv_file a.bam b.bam ...
 
 tigra_sv sv_file bam_list_file
-</p>
 
 ## OPTIONS
 
