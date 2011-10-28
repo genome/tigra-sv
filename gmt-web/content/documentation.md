@@ -1,6 +1,6 @@
 # EXAMPLES
 
-=======================
+***
 
 ## Run pcr format SV calls:
 
@@ -16,7 +16,7 @@ tigra_sv -b breakdancer.sv /gscuser/tumor.bam /gscuser/normal.bam
 
 # TIGRA_SV
 
-=======================
+***
 
 ## NAME
 TIGRA_SV - a tool that conducts targeted local assembly of structural variants (SV).
@@ -89,9 +89,13 @@ tigra_sv <SV file> <bam_list_file>
 
 # AUTHOR
 
+***
+
 Xian Fan, Ken Chen, Lei Chen 
 
 
 # DISCLAIMER
+
+***
 
 This software is provided "as is" without warranty of any kind.
