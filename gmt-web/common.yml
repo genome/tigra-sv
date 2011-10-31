@@ -1,0 +1,19 @@
+---
+layout: sub
+menu: 
+    - text: Overview
+      href: index.html
+    - text: Documentation
+      href: documentation.html
+    - text: Install
+      href: install.html
+
+module_details:
+    name: TIGRA-SV
+    icon: res/images/icon_48.png
+    icon_16: res/images/icon_16.png
+    exe_name: tigra-sv
+    gmt_pkg_name: tigra-sv
+    debian_pkg_name: tigra-sv
+
+download_link: install.html
