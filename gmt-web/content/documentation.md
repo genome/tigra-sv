@@ -21,6 +21,13 @@ tigra-sv -b breakdancer.sv /gscuser/tumor.bam /gscuser/normal.bam
 ## NAME
 TIGRA-SV - a tool that conducts targeted local assembly of structural variants (SV).
 
+## SYNOPSIS
+
+<p class='terminal' markdown='1'>
+tigra-sv sv_file a.bam b.bam ...
+
+tigra-sv sv_file bam_list_file
+</p>
 
 ## DESCRIPTION
 
@@ -33,13 +40,6 @@ consensus sequence, TIGRA-SV outputs all the alternative alleles in the ROI as l
 sufficient sequence coverage (usually >= 2x). It is shown that TIGRA-SV is quite effective at improving 
 the SV prediction accuracy in short reads analysis and can produce accurate breakpoint sequences that 
 are valuable to understand the origin, mechanism and pathology underlying the SVs.
-
-
-## SYNOPSIS
-
-tigra-sv sv_file a.bam b.bam ...
-
-tigra-sv sv_file bam_list_file
 
 ## OPTIONS
 
