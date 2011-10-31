@@ -24,8 +24,8 @@ TIGRA-SV - a tool that conducts targeted local assembly of structural variants (
 ## SYNOPSIS
 
 <p class='terminal' markdown='1'>
-tigra-sv sv_file a.bam b.bam ...
-
+tigra-sv sv_file a.bam b.bam ...<br />
+<br />
 tigra-sv sv_file bam_list_file
 </p>
 
