@@ -2,10 +2,3 @@ h2. Introduction
 ==<hr />==
 
 p. TIGRA-SV is a program that conducts targeted local assembly of structural variants (SV) using the iterative graph routing assembly (TIGRA) algorithm (L. Chen, unpublished). It takes input as a list of putative SV calls and a set of bam files that contain reads mapped to a reference genome. For each SV call, it assembles the set of reads that were mapped or partially mapped to the region of interest (ROI) in the corresponding bam files. TIGRA-SV is quite effective at improving the SV prediction accuracy in short reads analysis and can produce accurate breakpoint sequences.
-
-h2. Getting Help
-==<hr />==
-
-p. If you have questions about TIGRA-SV please send them along to "genome-dev@genome.wustl.edu":mailto:genome-dev@genome.wustl.edu@genome.wustl.edu
-
-
