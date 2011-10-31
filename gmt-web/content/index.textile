@@ -6,6 +6,6 @@ p. TIGRA-SV is a program that conducts targeted local assembly of structural var
 h2. Getting Help
 ==<hr />==
 
-p. If you have questions about TIGRA-SV please send them along to genome-dev@genome.wustl.edu .
+p. If you have questions about TIGRA-SV please send them along to :mailto:genome-dev@genome.wustl.edu .
 
 
