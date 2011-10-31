@@ -9,17 +9,17 @@ endif ()
 # The format of the description field is a short summary line followed by a
 # longer paragraph indented by a single space on each line
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
-"Tigra_sv is a program that conducts targeted local assembly of structural variants.
- Tigra_sv is a program that conducts targeted local assembly of structural
+"TIGRA_SV is a program that conducts targeted local assembly of structural variants.
+ TIGRA_SV is a program that conducts targeted local assembly of structural
  variants (SV) using the iterative graph routing assembly (TIGRA) algorithm (L.
  Chen et al, unpublished). It takes as input a list of putative SV calls and a
  set of bam files that contain reads mapped to a reference genome such as NCBI
  build36.  For each SV call, it assembles the set of reads that were mapped or
  partially mapped to the region of interest (ROI) in the corresponding bam
- files. Instead of outputing a single consensus sequence, tigra_sv attempts to
+ files. Instead of outputing a single consensus sequence, TIGRA_SV attempts to
  construct all the alternative alleles in the ROI as long as they received
  sufficient sequence coverage (usually >= 2x).  It also utilizes the variant
- type information in the input files to select reads for assembly.  Tigra_sv is
+ type information in the input files to select reads for assembly.  TIGRA_SV is
  effective at improving the SV prediction accuracy and resolution in short reads
  analysis and can produce accurate breakpoint sequences that are useful to
  understand the origin, mechanism and pathology underlying the SVs.")

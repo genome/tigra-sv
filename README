@@ -1,18 +1,18 @@
 #Introduction
 
-Tigra_sv is a program that conducts targeted local assembly of structural variants (SV) using the iterative graph routing assembly (TIGRA) algorithm (L. Chen et al, unpublished). It takes as input a list of putative SV calls and a set of bam files that contain reads mapped to a reference genome such as NCBI build36.  For each SV call, it assembles the set of reads that were mapped or partially mapped to the region of interest (ROI) in the corresponding bam files. Instead of outputing a single consensus sequence, tigra_sv attempts to construct all the alternative alleles in the ROI as long as they received sufficient sequence coverage (usually >= 2x).  It also utilizes the variant type information in the input files to select reads for assembly.  Tigra_sv is effective at improving the SV prediction accuracy and resolution in short reads analysis and can produce accurate breakpoint sequences that are useful to understand the origin, mechanism and pathology underlying the SVs.
+TIGRA-SV is a program that conducts targeted local assembly of structural variants (SV) using the iterative graph routing assembly (TIGRA) algorithm (L. Chen et al, unpublished). It takes as input a list of putative SV calls and a set of bam files that contain reads mapped to a reference genome such as NCBI build36.  For each SV call, it assembles the set of reads that were mapped or partially mapped to the region of interest (ROI) in the corresponding bam files. Instead of outputing a single consensus sequence, TIGRA-SV attempts to construct all the alternative alleles in the ROI as long as they received sufficient sequence coverage (usually >= 2x).  It also utilizes the variant type information in the input files to select reads for assembly.  TIGRA-SV is effective at improving the SV prediction accuracy and resolution in short reads analysis and can produce accurate breakpoint sequences that are useful to understand the origin, mechanism and pathology underlying the SVs.
 
 This is an early beta-release version 0.0.1. 
 
 #Install
 
-	Since tigra_sv uses samtools C API. Please install samtools (http://samtools.sourceforge.net/). Please also modify the Makefile to link the compiler to the correct locations of samtools in your system.
+	Since TIGRA-SV uses samtools C API. Please install samtools (http://samtools.sourceforge.net/). Please also modify the Makefile to link the compiler to the correct locations of samtools in your system.
 
 #Usage:
 
-./tigra_sv <SV file> <a.bam> <b.bam> ...
+./tigra-sv <SV file> <a.bam> <b.bam> ...
 Or: 
-./tigra_sv <SV file> <bam_list_file>
+./tigra-sv <SV file> <bam_list_file>
 
 Options:
         -l INT          Flanking size for assembly [500] bp
@@ -112,19 +112,19 @@ Options:
 
 #Example running command:
 
-	/gscuser/tigra_sv washu_pilot2_trio_large_deletions.pcr pcr_filelist.txt
+	/gscuser/tigra-sv washu_pilot2_trio_large_deletions.pcr pcr_filelist.txt
 
 	to run pcr format SV calls.
 
 	Or
 
-	/gscuser/tigra_sv breakdancer.sv /gscuser/tumor.bam /gscuser/normal.bam
+	/gscuser/tigra-sv breakdancer.sv /gscuser/tumor.bam /gscuser/normal.bam
 
 	to run breakdancer format SV calls.
 	
 	Or
 	
-	/gscuser/tigra_sv -R NCBI-build36.fa washu_pilot2_trio_large_deletions.pcr pcr_filelist.txt
+	/gscuser/tigra-sv -R NCBI-build36.fa washu_pilot2_trio_large_deletions.pcr pcr_filelist.txt
 	
 	to provide NCBI-build36.fa as reference
 	
