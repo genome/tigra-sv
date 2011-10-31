@@ -1,9 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2010 Washington University Genome Center		   *
- *      by Ken Chen & Xian Fan & Lei Chen				   *
- *		kchen@genome.wustl.edu,					   * 
- *		xfan@genome.wustl.edu,		                           *
- *		lchen@genome.wustl.edu					   *
+ *   Copyright (C) 2010 by Ken Chen & Xian Fan   *
+ *   kchen@genome.wustl.edu, xfan@genome.wustl.edu   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -22,6 +19,7 @@
  ***************************************************************************/
 
 
+#include <version.h>
 #include <iostream>
 #include <fstream>
 //#include <strstream>
@@ -67,7 +65,6 @@ namespace std
 
 using namespace std;
 
-string version ("0.1.1");
 string options ("");
 
 typedef struct eqstr
@@ -111,7 +108,6 @@ typedef struct BD_data{
 	string gene;
 	string database;
 	string bam_related;
-	int index; // index for the call to keep track in a big file
 };
 
 typedef struct test_data
@@ -143,7 +139,7 @@ string ftos(float i){
     return i_str_stream.str();
 }
 
-
+// tools to be used in the following classes
 class tools {
 public:
 /*	// split rReads by the sep, sep could be extended continuously, results to be splitted
@@ -451,6 +447,7 @@ public:
 	
 };
 
+// generate kmer by hh[kmer]=number_of_kmer, in which number_of_kmer < C && > c
 class kmergen {
 public:
 	int k;// = 25;
@@ -506,6 +503,7 @@ public:
 					string w = (*seg).substr(i, k);
 					
 					if(filter.length() != 0 && filter.find(w) != string::npos){ // need to see how to implement i: not specifying the case
+						int test1 = 0;
 						continue;
 					}
 					if(hh.find(w) != hh.end())
@@ -516,6 +514,7 @@ public:
 						reverse(vw.begin(),vw.end());
 						vw = tl.tr(vw, "ATGC", "TACG"); // need to work on tr function, done
 						if(filter.length() != 0 && filter.find(vw) != string::npos){ // need to see how to implement i: not specifying the case
+							int test1 = 0;
 							continue;
 						}
 						if(hh.find(vw) != hh.end())
@@ -566,6 +565,7 @@ public:
 	}	
 };
 
+// with HH generated in graphgen, walk through with the input(I) and output(O) alleles, and connect them to form a contig, and store it to Contigs[node]=ContigsSeq
 class walknodes {
 public:
 	int k;// = 25;
@@ -602,10 +602,12 @@ public:
 	// generate proto-contigs
 	// Xian: this class is to maximally connect the root branch from one key (node) -> Contig
 	void strictwalk(map<string, test_HH > &rHH){
-		//ofstream fh;
-		//fh.open("leftright");
+//ofstream fh;
+//fh.open("leftright");
+		tools tl;
 		Contignum = 0;
 		HH = rHH;
+int tmp = HH.size();
 		for(map<string, test_HH >::iterator HH_it = HH.begin(); HH_it != HH.end(); HH_it++){
 			HH[(*HH_it).first].tag = 0;
 		}	/////// this loop seems unnecessary seeing the following loop
@@ -621,9 +623,9 @@ public:
 				continue;
 			Contignum += 1;
 			string key = (*HH_it).first; // Xian: key is kmer
-			//if(key.compare("AAAGTAGCAAGATAGGCTGCCCCTC") == 0){
-			//int a = 0;
-			//}
+//if(key.compare("AAAGTAGCAAGATAGGCTGCCCCTC") == 0){
+//int a = 0;
+//}
 			HH[key].tag = Contignum; // Xian: contig id
 			string right, left;
 			int rightsum, leftsum, righttype, lefttype;
@@ -634,7 +636,7 @@ public:
 			//left = tl.reverse(left);
 			reverse(left.begin(), left.end());
 			Contigs[Contignum] = left + key + right;
-			//fh << "left: " << left << "\nkey:  " << key << "\nright:" << right << "\n\n";
+//fh << "left: " << left << "\nkey:  " << key << "\nright:" << right << "\n\n";
 			Contiglens[Contignum] = Contigs[Contignum].length();
 			int tmp_ = Contiglens[Contignum] - k + 1;
 			if(tmp_ == 0)
@@ -643,7 +645,7 @@ public:
 			Contigtypes[Contignum] = lefttype_str + righttype_str; // Xian: left branches number and right branches number
 		}
 		//cerr << " Num of Contigs: " << Contignum << endl;
-		//fh.close();
+//fh.close();
 	}
 	
 	// do not check existance of nodes, always use solid nodes
@@ -861,7 +863,7 @@ public:
 				int con = (*a_it).first;
 				i += itos(con) + ":" + itos(a[con]) + ",";
 			}
-			//int tmp = Contiglens[ii];
+//int tmp = Contiglens[ii];
 			if(Contiglens[ii]-k < 0)
 				continue;
 			node = Contigs[ii].substr(Contiglens[ii] - k, k);
@@ -996,6 +998,7 @@ public:
 	}
 };
 
+// track from the end of a contig which does not have any branches, and see how long it could go: Contigtips[Contignum]=TipLength
 class processtips {
 
 public:
@@ -1166,7 +1169,7 @@ public:
 				Contigtips[-si] = DefaultTip;
 			if(Contigtips[-si] < Smalltip)
 				continue;
-
+			char ACGT[4] = {'A','C','G','T'};
 			if(dir == 1){
 				int big = 0;
 				string base("");
@@ -1491,7 +1494,7 @@ public:
 };
 
 
-
+// recover low frequency kmers in high quality reads that bridge separated non-tip proto-contig graphs
 class addbridgekmer {
 	
 public:
@@ -1852,6 +1855,7 @@ public:
 	}
 };
 
+// extend proto-contigs to contigs by removing tips and collapse bubbles with heuristic cut-offs
 class walkcontig {
 
 public:
@@ -1917,7 +1921,7 @@ public:
 	}
 	
 	void walkcontigwrap(int cutoff_, float ratiocutoff_, map<string, test_HH> &HH_, map<int, int> &tips, map<int, map<string, string> > &in_contigs){
-		//cout << "Before doing walkcontig:\n";
+//            cout << "Before doing walkcontig:\n";
 		tools tl;
 		int cutoff;
 		float ratiocutoff;
@@ -1946,11 +1950,11 @@ public:
 		
 		Contignum2 = 0;
 		vector<int> index;
-		//cout << "Problem in reverse key:\n";
+//                cout << "Problem in reverse key:\n";
 		tl.sort_value_reverse_key_float(Contigcovs, index, 1, Contigs.size()); // need to write this in tools
-		//cout << "Before walkcontig loop" << index.size() << endl;
+//                cout << "Before walkcontig loop" << index.size() << endl;
 		for(int ii = 0; ii < index.size(); ii++){
-			//cout << ii << " out of " << index.size() << endl;
+//                    cout << ii << " out of " << index.size() << endl;
 			int i = index[ii];
 			if(Contigtags[i] != 0)
 				continue;
@@ -2115,8 +2119,8 @@ public:
 				step_ ++;
 				if(a[a.size() - 1] != 0){
 					vector<int> temp;
-					//if(temp.size() == 0)
-					//	continue;
+//if(temp.size() == 0)
+//	continue;
 					step(a[a.size() - 1], stepcutoff, stepratiocutoff, temp);
 					int x = temp[0];
 					if(x != 0){
@@ -2158,8 +2162,8 @@ public:
 				}
 				if(b[b.size() - 1] != 0){
 					vector<int> temp;
-					//if(temp.size() == 0)
-					//	continue;
+//if(temp.size() == 0)
+//	continue;
 					step(b[b.size() - 1], stepcutoff, stepratiocutoff, temp);
 					int x = temp[0];
 					if(x != 0){
@@ -2518,7 +2522,8 @@ public:
 				//cerr << "bingo " << key_Interest2_rd << "\t" << xcontig2 << "\t" << path << "\tsort " << sort[0] << " " << sort[1] << " "<< sort[1] - sort[0] << " "<< Walkcutoff*Scaffold_factor<< " " << Ratiocutoff*Scaffold_factor*sort[1] << "\n";
 				if((sort[1] - sort[0]) < float(Walkcutoff)*Scaffold_factor && (sort[1] - sort[0]) < Ratiocutoff*Scaffold_factor*float(sort[1])){
 					//cerr << "Bingo " << key_Interest2_rd << "\t" << xcontig2 << "\t" << path << "\n";
-			
+					
+					
 					if(atoi(p[0].c_str()) == Interest2[key_Interest2_rd][0] && atoi(p[p.size() - 1].c_str()) == - Interest2[-xcontig2][0]){ // merge go here
 						//cerr << "BINGO "<< key_Interest2_rd << "\t"<< xcontig2 << "\t"<< path<< "\n";
 						string pathseq = atoi(p[0].c_str()) > 0 ? Contigs[abs(atoi(p[0].c_str()))] : revcom(Contigs[abs(atoi(p[0].c_str()))]);
@@ -2709,6 +2714,40 @@ public:
 		*xcontig2 = 0;
 		*path = "0";
 	}
+	
+	void test(){
+		
+	}
+		
+	/*void mapreads(){
+		tools tl;
+		//cerr << "Mapping reads to contigs .. \n";
+		int index = 0; // reads start from 1, negative mean revcom
+		for(int j = 0; j < Reads.size(); j++){
+			string rd = Reads[j];
+			rd = tl.chomp(rd);
+			index ++;
+			//if(index % 100000 == 0)
+			//	cerr << "Mapped " << index << " reads\n";
+			map<int, int> a;
+			for(int i = 0; i <= rd.length() - K; i+=2){
+				string w = rd.substr(i, K);
+				if(!(HH.find(w)!= HH.end() && HH[w].size() != 0 || HH.find(revcom(w))!=HH.end() && HH[revcom(w)].size() != 0))
+					continue;
+				int dir;
+				string truew = true_func(w, &dir);
+				if(HH.find(truew) != HH.end() && HH[truew].find("n") != HH[truew].end() && HH[truew]["n"] <= 1)
+					continue;
+				int contig = dir*HH[truew]["tag"];
+				if(! (Interest.find(abs(contig))!=Interest.end()))
+					continue;
+				if(a.find(contig) == a.end() || a[contig] == 0){
+					Interest[abs(contig)].push_back(contig/abs(contig)*index);
+					a[contig] = 1;
+				}
+			}
+		}
+	}*/
 
 	void mapreads(){
 		tools tl;
@@ -2822,7 +2861,7 @@ public:
 					break;
 			}
 		}
-		//int temp = Interest.size();
+		int temp = Interest.size();
 		//cerr << temp << " interesting contigs found.\n";
 	}
 	
@@ -3093,7 +3132,7 @@ public:
 	}	
 };
 		
-
+// generate a graph of the kmer created in kmergen, HH, so that we know of the numbers of each input allele (on the left) and the output allele (on the right) of each kmer in hh. Will not connect the two at different status: one on a branch, the other as a unique one.
 class graphgen{
 public:
 	
@@ -3152,14 +3191,14 @@ public:
 			string rd = rReads[ii];
 			string PRstr("");
 			int l = rd.length();
-			if(l < k)
-				continue;
+if(l < k)
+	continue;
 
-			// efficient code:
-			string rrd = rd;
-			reverse(rrd.begin(), rrd.end());
-			rrd = tl.tr(rrd, "ATGC", "TACG");
-			//
+// efficient code:
+string rrd = rd;
+reverse(rrd.begin(), rrd.end());
+rrd = tl.tr(rrd, "ATGC", "TACG");
+//
 			for(int i = k; i <= l-1; i++){ // ??? Need to ask Xian: need to leave space for the next kmer
 				string w = rd.substr(i-k, k);
 				string rw = rrd.substr(l-i, k);
@@ -3330,7 +3369,169 @@ public:
 		PRF.close();
 	}
 };
+		
+/*class graphgen{
+public:
+	
+	int k;// = 25;
+	map<string, map<string, int> > HH; // map<contig, map<info, count> >
+	
+	graphgen(){
+		k = 25;
+	}
+	
+	void set_kmer_size(int k_){
+		k = k_;
+	}
+	
+	void set_HH(map<string, int> &kmers){
+		for(map<string, int>::iterator kmers_it = kmers.begin(); kmers_it != kmers.end(); kmers_it ++){
+			string key = (*kmers_it).first;
+			int value = (*kmers_it).second;
+			HH[key]["n"] = value;
+			HH[key]["AI"] = 0;
+			HH[key]["CI"] = 0;
+			HH[key]["GI"] = 0;
+			HH[key]["TI"] = 0;		
+			HH[key]["AO"] = 0;		
+			HH[key]["CO"] = 0;			
+			HH[key]["GO"] = 0;					
+			HH[key]["TO"] = 0;			
+			HH[key]["tag"] = 0;			
+			HH[key]["tag2"] = 0;							 
+		}
+	}
 
+	map<string, map<string, int> > &get_HH(){
+		return HH;
+	}
+	
+	~graphgen(){
+		HH = map<string, map<string, int> >();
+	}
+	
+	// generate HH, which take the infos in hh, and also the next kmer (O) or the previous kmer (I) number for each kmer 
+	int doit(vector<string> &rReads, vector<string> &PR){
+		tools tl;
+		int RDnum = 0;
+		for(int ii = 0; ii < rReads.size(); ii++){
+
+			string rd = rReads[ii];
+			string PRstr("");
+			int l = rd.length();
+
+// efficient code:
+string rrd = rd;
+reverse(rrd.begin(), rrd.end());
+rrd = tl.tr(rrd, "ATGC", "TACG");
+//
+			for(int i = k; i <= l-1; i++){ // ??? Need to ask Xian: need to leave space for the next kmer
+				string w = rd.substr(i-k, k);
+				string rw = rrd.substr(l-i, k);
+				//string rw = w;			
+				//reverse(rw.begin(), rw.end());
+				//string rw = tl.reverse(w);
+				//rw = tl.tr(rw, "ATGC", "TACG");
+				int occur = 0;
+				int tag = 0; // skip bases when kmer do not exit
+				if(HH.find(w) != HH.end()){
+					occur = HH[w]["n"];
+					string u = rd.substr(i-k+1, k);
+					string ru = rrd.substr(l-i-1, k);
+					//string ru = u;
+					//reverse(ru.begin(), ru.end());
+					//string ru = tl.reverse(u);
+					//string old_str = "ATGC";
+					//string new_str = "TACG";
+					//ru = tl.tr(ru, old_str, new_str);
+					if(HH.find(u) != HH.end()){ // $w $u  // Xian: notice; the next contig should also exit in HH ###
+
+						string next = u.substr(k-1, 1);
+						HH[w][next+"O"] ++;  // go out count up
+						next = w.substr(0,1);
+						HH[u][next+"I"] ++; // go in for u count up
+					}
+					else if(HH.find(ru) != HH.end()){ // $w $ru
+						string next = u.substr(k-1, 1);
+						HH[w][next+"O"] ++; // Xian: cannot understand this
+						next = rw.substr(k-1,1);
+						HH[ru][next+"O"] ++;
+					}
+					else{
+						i++;
+						tag = 1;
+					}
+				}
+				else if(HH.find(rw) != HH.end()){
+					occur = HH[rw]["n"];
+					string u = rd.substr(i-k+1, k);
+					string ru = rrd.substr(l-i-1, k);
+					//string ru = u;
+					//reverse(ru.begin(), ru.end());
+					//string ru = tl.reverse(u);
+					//string old_str = "ATGC";
+					//string new_str = "TACG";
+					//ru = tl.tr(ru, old_str, new_str);
+					if(HH.find(u) != HH.end()){ // rw, u
+						string next = ru.substr(0,1);
+						HH[rw][next+"I"] ++;
+						next = w.substr(0,1);
+						HH[u][next+"I"] ++;
+					}
+					else if(HH.find(ru) != HH.end()){ // rw ru
+						string next = ru.substr(0,1);
+						HH[rw][next+"I"] ++;
+						next = rw.substr(k-1,1);
+						HH[ru][next+"O"] ++;
+					}
+					else{
+						i++;
+						tag = 1;
+					}
+				}
+				else
+					occur = 1; // no such kmer
+				
+				PRstr = PRstr + itos(occur) + " "; // Xian: numbers of the kmers
+				if(tag == 1 && i < l)
+					PRstr = PRstr + "1 ";
+			}
+			
+			string w = rd.substr(l-k, k); // start starting from 0 or 1?
+			string rw = w;
+			reverse(rw.begin(), rw.end());
+			//string rw = tl.reverse(w);
+			rw = tl.tr(rw, "ATGC", "TACG");
+
+			if(HH.find(w) != HH.end())
+				PRstr = PRstr + itos(HH[w]["n"]);
+			else if(HH.find(rw) != HH.end())
+				PRstr = PRstr + itos(HH[rw]["n"]);
+			else 
+				PRstr = PRstr + "1";
+			PR.push_back(PRstr);
+			
+			RDnum ++;
+			if(RDnum % 100000 == 0)
+				cerr << "Added " << RDnum << " reads\n";
+		}
+		return RDnum;
+	}
+
+	void printPR(string file, vector<string> &rPR){
+		ofstream PRF;
+		char file_char[file.length()];
+		strcpy(file_char, file.c_str());
+		PRF.open(file_char);
+		PRF.close();
+		PRF.open(file_char, ofstream::app);
+		for(int i = 0; i < rPR.size(); i++)
+			PRF << rPR[i] << "\n";
+		PRF.close();
+	}
+};*/
+	
+// connect the contigs and make a graph
 class allpaths{
 	
 public:
@@ -3407,7 +3608,7 @@ public:
 		}
 		
 		if(bnodes.size() -1 >= n){
-			cerr << "\tSkip assembling alternative alleles, graph complexity higher than user specified" << endl;
+			cerr << "Skip Graph size too large! \n";
 			return;
 		}
 		
@@ -3611,7 +3812,7 @@ public:
 		else{
 			if(node.find("O") != node.end()){
 				vector<string> nis;
-				string tmp = node["O"];
+string tmp = node["O"];
 				tl.split(node["O"], sep, nis);
 				for(int i = 0; i < nis.size(); i++){
 					string ni = nis[i];
@@ -3622,7 +3823,7 @@ public:
 					if(id_split.find("M") != string::npos)
 						continue;
 					int id = atoi(id_split.c_str());
-					//int end = (id>0)?1:0;  //inbound reverse in-node orientation
+					int end = (id>0)?1:0;  //inbound reverse in-node orientation
 					// 1: the start end of a contig, 0: the end of a contig
 					id = (id<0)?abs(id):-abs(id);
 					neighbor[id] = nreads_split;
@@ -3680,7 +3881,7 @@ public:
 		vector<string> na = tl.split(a, sep);
 		vector<string> nb = tl.split(b, sep);
 		if(nb.size() -1 > na.size() - 1)
-			return EXIT_SUCCESS;
+			return 1;
 		else if(nb.size() - 1 < na.size() - 1)
 			return -1;
 		else
@@ -3700,10 +3901,7 @@ public:
 	int tip_number;
 	int total;
 	string estimate_STR;
-    int index;
-	string prefix;
-	int min_contig_size;
-
+	
 	map<int, map<string, string> > contigs;
 	map<int, int> contigtips;
     	vector<string> fastas;
@@ -3711,7 +3909,7 @@ public:
 	map<int, map<string, string> > to_print_contigs;
 	map<string, int> hh;
 	
-	main_functions(int debug_, int low_kmer_, int high_kmer_, map<int, map<string, string> > &contigs_, map<int, int> &contigtips_, vector<string> &fastas_, int tip_number_, string estimate_STR_, const string & pref, const int& size){
+	main_functions(int debug_, int low_kmer_, int high_kmer_, map<int, map<string, string> > &contigs_, map<int, int> &contigtips_, vector<string> &fastas_, int tip_number_, string estimate_STR_){
 		debug = debug_;
 		low_kmer = low_kmer_;
 		high_kmer = high_kmer_;
@@ -3721,8 +3919,6 @@ public:
 		tip_number = tip_number_;
 		estimate_STR = estimate_STR_;
 		total = 0;
-		prefix=pref;
-		min_contig_size=size;
 	}
 	
 	void set_kmer_size(int kmer_size){
@@ -3730,6 +3926,53 @@ public:
 		return;
 	}
 	
+	/*void getReads(int fastas_, int contigs_, vector<string> &Reads, string fasta_str, vector<string> &pReads){
+		tools tl;
+		vector<string> fastas_local;
+		//vector<string> pReads;
+		if(fastas_ == 1)
+			fastas_local = fastas;
+		if(fasta_str.length() != 0)
+			fastas_local.push_back(fasta_str);			
+			
+		if(fastas_ == 1){
+			for(int i = 0; i < fastas_local.size(); i++){
+				string fasta = fastas_local[i];
+				ifstream FASTAS;
+				FASTAS.open(fasta.c_str());
+				string header;
+				char line_[500];
+				if(FASTAS.is_open()){
+					while(FASTAS.good()){
+						FASTAS.getline(line_, 500);
+						string line(line_);
+						line = tl.chomp(line);
+						if(line.substr(0,1).compare(">")==0)
+							header = line;
+						FASTAS.getline(line_, 500);
+						line = line_;
+						line = tl.chomp(line);
+						if(line.length() > 0)
+							Reads.push_back(line); // Xian: Reads from fasta
+						if(estimate_STR.length() > 0 && header.find(estimate_STR) != string::npos && line.length() > 0)
+							pReads.push_back(line);						
+					}
+					FASTAS.close();
+				}
+			}
+		}
+		
+		if(contigs_ == 1){
+			for(int i = 1; i <= contigs.size(); i++){
+				map<string, string> contig = contigs[i];
+				if(! (atoi(contig["lens"].c_str()) > kmer_size + 5))
+					continue;
+				Reads.push_back(contig["seq"]);
+			}
+		}
+		return;
+	}*/
+
 	void getReads(int fastas_, int contigs_, vector<string> &Reads, string fasta_str, vector<string> &pReads){
 		if(fastas_ == 1){
 			string header;
@@ -3763,17 +4006,17 @@ public:
 		kg.c = low_kmer;
 		kg.C = high_kmer;
 		map<string, int> hh; // Xian: map<kmer, count>
-		kg.doit(Reads, hh);
+		int total = kg.doit(Reads, hh);
 		if(debug == 1)
 			kg.printMer("Mer", hh);
 		
-		//cout << "Before graphgen:\n";
+//                cout << "Before graphgen:\n";
 		graphgen gg;
 		gg.set_kmer_size(kmersize);
 		gg.set_HH(hh);
 		map<string, test_HH > HH;
 		vector<string> PR;
-		gg.doit(Reads, PR);
+		int RDnum = gg.doit(Reads, PR);
 		HH = gg.get_HH();
 		if(debug == 1){
 			printnodes("Mynodes", HH);
@@ -3798,7 +4041,7 @@ public:
 			ofs.close();
 		}
 	
-		//cout << "Before processtips:\n";        
+    //    cout << "Before processtips:\n";        
 		// compute tip value: max{nucleotide distances to leaves} for all proto-contigs and the anti-proto-contigs, start from the leaves
 		processtips pt;
 		pt.set_kmer_size(kmersize);
@@ -3812,7 +4055,7 @@ public:
 			ofs.close();
 		}
 
-		//cout << "Before addbridgekmer:\n";	
+//	cout << "Before addbridgekmer:\n";	
 		//recover low frequency kmers in high quality reads that bridge separated non-tip proto-contig graphs
 		addbridgekmer ab;
 		ab.set_kmer_size(kmersize);
@@ -3831,7 +4074,7 @@ public:
 			FOUT.close();
 		}
 		
-		//cout << "Before walknode:\n";
+//                cout << "Before walknode:\n";
 		contigtips = map<int, int>();
 		wn.strictwalk(HH);
 		HH = wn.HH;
@@ -3846,7 +4089,7 @@ public:
 			ofs.close();
 		}
 		
-		//cout << "Before second processtips:\n";
+  //              cout << "Before second processtips:\n";
 		//updated the set of proto-contigs with the expanded hash
 		processtips pt1;
 		pt1.set_kmer_size(kmersize);
@@ -3860,13 +4103,13 @@ public:
 			ofs.close();
 		}
 			
-		//cout << "Before walkcontig:\n";
+//		cout << "Before walkcontig:\n";
 		//extend proto-contigs to contigs by removing tips and collapse bubbles with heuristic cut-offs
 		walkcontig wc;
 		wc.set_kmer_size(kmersize);
 		wc.walkcontigwrap(3, 0.3, HH, contigtips, protocontigs);
 		HH = wc.HH;
-		//contigtips = wc.Contigtips;
+//		contigtips = wc.Contigtips;
 		contigs = protocontigs;
 		map<int , map<string, string> > contigs2;
 		wc.dump_contigs2(contigs2);
@@ -3884,7 +4127,7 @@ public:
 			//outputcontigs("Mycontigs2.wlkcon", 2);
 		}
 		
-		//cout << "Before breaktip:\n";
+//                cout << "Before breaktip:\n";
 		//relabel tips on proto-contigs connected to the middle of a contig
 		pt1.breaktip(tip_number, HH, contigtips, contigs, contigs2);
 		HH = pt1.HH;
@@ -3900,7 +4143,7 @@ public:
 			ofs.close();
 		}
 		
-		//cout << "Before second time walkcontig:\n";
+//                cout << "Before second time walkcontig:\n";
 		//similar to 6, different param, more sensitive to weak branches
 		walkcontig wc1;
 		wc1.set_kmer_size(kmersize);
@@ -3921,7 +4164,7 @@ public:
 			ofs1.close();
 		}
 		
-		//cout << "Before maprdtocontig:\n";
+//                cout << "Before maprdtocontig:\n";
 		//use entire read length to resolve small repeats
 		maprdtocontig mr;
 		mr.set_kmer_size(kmersize);
@@ -3961,7 +4204,7 @@ public:
 		for(int ii = 0; ii < fakeReads.size(); ii++)
 			totalReads.push_back(fakeReads[ii]);
 		map<string, int> hh;
-		kg.doit(totalReads, hh);
+		int total = kg.doit(totalReads, hh);
 		if(debug == 1)
 			kg.printMer("Mer", hh);
 		
@@ -3973,7 +4216,7 @@ public:
 		gg.set_HH(hh);
 		map<string, test_HH > HH;
 		vector<string> PR;
-		gg.doit(totalReads, PR);
+		int RDnum = gg.doit(totalReads, PR);
 		HH = gg.get_HH();
 		if(debug == 1){
 			printnodes("Mynodes", HH);
@@ -4068,6 +4311,7 @@ public:
 		map<int, map<string, string> > contigs = protocontigs;
 		if(debug==1){
 			printnodes("Mynodes.wlkcon", HH);
+			int switch_ = 3;
 			to_print_contigs = contigs;
 			ofstream ofs("Mycontigs.wlkcon");
 			outputcontigs(ofs, 3, 0);
@@ -4150,8 +4394,6 @@ public:
 			map<string, string> contig = (*contig_).second;
 			if(contig.size() == 0)
 				continue;
-			if (atoi(contig["lens"].c_str())<min_contig_size)
-				continue;
 			int contig_kmerUtil = 0;
 			string case_seq = "";
 			
@@ -4164,7 +4406,7 @@ public:
 			}
 			
 			if(switch_ == 1){
-				fh << ">" << prefix << ".Contig" << contig["id"] << " " << contig["lens"] << " " << contig["covs"] << " " << contig["types"] << " ";
+				fh << ">Contig" << contig["id"] << " " << contig["lens"] << " " << contig["covs"] << " " << contig["types"] << " ";
 				if(contigtips.find(atoi(contig["id"].c_str())) == contigtips.end())
 					fh << tip_number << " ";
 				else
@@ -4176,9 +4418,9 @@ public:
  				fh << contig["tags"] << " I" << contig["I"] << " O" << contig["O"] << " " << contig_kmerUtil;
 			}
 			else if(switch_ == 2)
-				fh << ">" << prefix << ".Contig" << contig["id"] << " " << contig["lens"] << " " << contig["covs"] << " " << contig["types"] << " I" << contig["I"]<< " O" << contig["O"] << " " << contig_kmerUtil;
+				fh << ">Contig" << contig["id"] << " " << contig["lens"] << " " << contig["covs"] << " " << contig["types"] << " I" << contig["I"]<< " O" << contig["O"] << " " << contig_kmerUtil;
 			else if(switch_ == 3){
-				fh << ">" << prefix << ".Contig" << contig["id"]<<" "<<contig["lens"]<<" "<<contig["covs"]<<" "<<contig["types"]<<" ";
+				fh << ">Contig"<<contig["id"]<<" "<<contig["lens"]<<" "<<contig["covs"]<<" "<<contig["types"]<<" ";
 				if(contigtips.find(atoi(contig["id"].c_str())) == contigtips.end())
 					fh<< tip_number << " ";
 				else
@@ -4190,11 +4432,11 @@ public:
 				fh << contig["tags"] << " " << contig_kmerUtil;
 			}
 			else if(switch_ == 4)
-				fh << ">" << prefix << ".Contig" << contig["id"]<<" "<<contig["lens"]<<" "<<contig["covs"]<<" "<<contig["types"]<<" I"<<contig["I"]<<" O"<<contig["O"]<<" "<<contig["tags"] << " " << contig_kmerUtil;
+				fh << ">Contig"<<contig["id"]<<" "<<contig["lens"]<<" "<<contig["covs"]<<" "<<contig["types"]<<" I"<<contig["I"]<<" O"<<contig["O"]<<" "<<contig["tags"] << " " << contig_kmerUtil;
 			else if(switch_ == 5)
-				fh << ">" << prefix << ".Contig" << contig["id"]<<" "<<contig["lens"]<<" "<<contig["covs"]<<" "<<contig_kmerUtil; 
+				fh << ">Contig"<<contig["id"]<<" "<<contig["lens"]<<" "<<contig["covs"]<<" "<<contig_kmerUtil; 
 			else{
-				fh << ">" << prefix << ".Contig" << contig["id"]<<" "<<contig["lens"]<<" "<<contig["covs"]<<" "<<contig["types"]<<" ";
+				fh << ">Contig"<<contig["id"]<<" "<<contig["lens"]<<" "<<contig["covs"]<<" "<<contig["types"]<<" ";
 				if(contigtips.find(atoi(contig["id"].c_str())) == contigtips.end())
 					fh << tip_number << " ";
 				else
@@ -4277,13 +4519,10 @@ public:
 	string reference_for_screen; // -r // now the string is the sequence
 	int max_node; // -n
 	int min_degree; // -N
-	int min_contig_size;
 	string graph_file; // -g
 	int debug; // -d
-	int index; // index of the particular call
-	string prefix;
-
-	tigra(const string & pref){
+	
+	tigra(){
 		kmer_size = "25";
 		min_kmer_cov = 3;
 		low_kmer = 2;
@@ -4292,7 +4531,6 @@ public:
 		max_node = 100;
 		min_degree = 2;
 		debug = 0;
-		prefix=pref;
 	}
 	
 	int run_tigra(vector<string> &fastas){
@@ -4313,9 +4551,10 @@ public:
 			fprintf(stderr, "	-N INT			Minimal number of degrees for a node to consider as start of alternative haplotype [%d]\n", min_degree);
 			fprintf(stderr,	"	-g STRING		Save assembly graph(png) in FILE\n");
 			fprintf(stderr, "       -d INT          Turn on debug mode, generate intermediate files\n");
-			fprintf(stderr, "Version: %s\n", version.c_str());
+			fprintf(stderr, "Version: %s (commit %s)\n", __g_prog_version, __g_commit_hash);
+
 			fprintf(stderr, "\n");
-			return EXIT_SUCCESS;
+			return 1;
 		}
 		
 		
@@ -4340,8 +4579,8 @@ public:
 		 optindex ++;
 		 }*/
 	
-		//cout << "Before Main Function:\n";        
-		main_functions mf(debug, low_kmer, high_kmer, contigs, contigtips, fastas, tip_number, estimate_STR, prefix,min_contig_size);
+//        cout << "Before Main Function:\n";        
+		main_functions mf(debug, low_kmer, high_kmer, contigs, contigtips, fastas, tip_number, estimate_STR);
 		int fastas_ = 1;
 		int contigs_ = 0;
 		vector<string> Reads;
@@ -4349,7 +4588,6 @@ public:
 		vector<string> pReads;
 		mf.getReads(fastas_, contigs_, Reads, fasta_, pReads);
 		mf.Reads = Reads;
-        mf.index = index;
 		if(debug == 1){
 			string fileName = "getReads";
 			ofstream fh;
@@ -4364,15 +4602,15 @@ public:
 		tools tl;
 		tl.split(kmer_size, sep, kmers);
 		string kmer_debug = kmers[0];
-		//cout << "Before tigra:\n";
+//                cout << "Before tigra:\n";
 		mf.initial_iteration(atoi(kmers[0].c_str()));
-		//cout << "After first tigra:\n";
+  //              cout << "After first tigra:\n";
 		mf.contigtips = map<int, int>();
 		for(int i = 1; i < kmers.size(); i++){
 			int kmer = atoi(kmers[i].c_str());
 			mf.iteration(kmer, mf.contigs, Reads);
 		}
-		//cout << "After second tigra:\n";
+//		cout << "After second tigra:\n";
 		/*string refseq = "";
 		 if(reference_for_screen.length() != 0){
 		 refseq = reference_for_screen;// read that in kmergen rather than here
@@ -4398,7 +4636,7 @@ public:
 		mf.hh = phh;
 		mf.kmer_size = atoi(kmers[kmers.size()-1].c_str());
 		if(assembly_file.length() != 0){
-			ofstream ofs(assembly_file.c_str(), ios::app);
+			ofstream ofs(assembly_file.c_str());
 			mf.outputcontigs(ofs, switch_, 1);
 			ofs.close();
 		}
@@ -4408,7 +4646,7 @@ public:
 		
 		
 		// do the following when allpaths is ready
-		//if (alternative_haplotype.length() > 0 || graph_file.length() > 0) {
+		if (alternative_haplotype.length() > 0 || graph_file.length() > 0) {
 			allpaths ap;
 			ap.set_kmer_size(atoi(kmers[kmers.size()-1].c_str()));
 			ap.set_cov(min_kmer_cov);
@@ -4421,10 +4659,9 @@ public:
 			map<int, map<string, string> > ret_contigs;
 			ap.doit(mf.to_print_contigs, ret_contigs);
 			mf.to_print_contigs = ret_contigs;
-			//int switch_ = 5;
-			switch_ = 5;
+			int switch_ = 5;
 			if(alternative_haplotype.length() != 0){
-				ofstream ofs(alternative_haplotype.c_str(), ios::app);
+				ofstream ofs(alternative_haplotype.c_str());
 				mf.outputcontigs(ofs, switch_, 5);
 				ofs.close();
 			}
@@ -4432,14 +4669,13 @@ public:
 				mf.outputcontigs(std::cout, switch_, 5);
 			}
 			
-		//}
-		return EXIT_SUCCESS;
+		}
 	}
 };		
 
 class assemble {
 public:
-	//string version;
+	string version;
 	vector<string> bams;
 	map<string, string> bamsmap;
 	string BreakDancer_file;
@@ -4453,25 +4689,17 @@ public:
 	int qual_threshold; // Q
 	string library_to_skip_; // L
 	string datadir; // I
-	//int write_to_ref; // r
+	int write_to_ref; // r
 	int write_to_read; // d
 	string reference_file; // R
 	string chromosome; // c
 	int skip_call; // z
-    int min_size_threshold; // M
-	int min_contig_size;
-    int max_node; // h
-    //string index_file; // i
-    string alternative_haplotype; // H
-    string assembly_file; // f
-    string write_to_ref_file; // P
-    int index; // starting from zero, a global variable
-    ofstream index_fh;
-	ofstream REF; 
+        int min_size_threshold; // M
+        int max_node; // h
+        string kmers;
 	
-	assemble(){		
+        assemble(){		
 		qual_threshold = 0;
-		index = 0;
 	}
 	
 	
@@ -4545,7 +4773,7 @@ public:
 		} 
 		else 
 			return 0; // will jump out
-		return EXIT_SUCCESS;
+		return 1;
 	}
 	
 	// read PCR coor; need bam_related in the data type
@@ -4590,10 +4818,8 @@ public:
 			tl.split(library_to_skip_, ",", nlibs);
 		ifstream BD;
 		BD.open(BreakDancer_file.c_str());
-
 		char line_[30000];
-        int call_num = 0;
-		//int num = 0;
+                int call_num = 0;
 		if(BD.is_open()){
 			while (BD.good()) {
 				BD.getline(line_, 30000);
@@ -4624,8 +4850,8 @@ public:
 						col_cn.push_back(col_normalcn);
 				}
 				else {
-                    if(call_num < skip_call)
-						continue;
+                                    if(call_num < skip_call)
+                                        continue;
 					string line(line_);
 					if(line.length() == 0)
 						continue;
@@ -4646,25 +4872,14 @@ public:
 					cr.ori2 = fields[5];
 					cr.type = fields[6];
 					cr.size = abs(atoi(fields[7].c_str()));
-
+                                        
 					if(fields.size()>8) cr.score = atoi(fields[8].c_str()) ;
 					if(fields.size()>9) cr.nreads = atoi(fields[9].c_str()) ;
-					if(fields.size()>11){
-						cr.nreads_lib = fields[10].c_str();
-						vector<string> bamcounts;
-						tl.split(cr.nreads_lib.c_str(), ":", bamcounts);
-						string bam_re="";
-						for(int j=0;j<bamcounts.size();j++){
-							vector<string> bamcount;
-							tl.split(bamcounts[j].c_str(), "|", bamcount);
-							bam_re=(bam_re.length()<=0)?bamcount[0]:bam_re+","+bamcount[0];
-						}
-						cr.bam_related=bam_re;
-					}
+					if(fields.size()>10) cr.nreads_lib = fields[10].c_str() ;
 					if(fields.size() > 11){
-						for(int j = 11; j < fields.size(); j++)
-							cr.extra.push_back(fields[j]);
-					}
+                                            for(int j = 11; j < fields.size(); j++)
+    					        cr.extra.push_back(fields[j]);
+                                        }
 					cr.line = line;
 					
 					if(cr.chr1.find("NT")!=string::npos || cr.chr1.find("RIB") != string::npos || cr.chr2.find("NT")!=string::npos || cr.chr2.find("RIB") != string::npos)
@@ -4679,7 +4894,7 @@ public:
 					int ignore = 0;
 					for(int i = 0; i < nlibs.size(); i++){
 						string nlib = nlibs[i];
-						if(cr.nreads_lib.find(nlib) != string::npos){
+						if(cr.nreads_lib.find(nlib) != string::npos) {
 							ignore = 1;
 							break;
 						}
@@ -4712,7 +4927,6 @@ public:
 						ignore = 0;
 					if(ignore > 0)
 						continue;
-
 					coor.push_back(cr);
 					
 				}
@@ -4722,7 +4936,6 @@ public:
 	}
 	
 	int AssembleBestSV(string prefix, BD_data SV, int a, int b){
-        index ++; // update this everytime coming to assemblyBestSV
 		string a_str(itos(a));
 		string b_str(itos(b));
 		BD_data maxSV;
@@ -4745,7 +4958,7 @@ public:
 		int start1, end1, start2, end2, regionsize, refsize;
 		vector<string> refs;
 		string posstr;
-		cerr << "#Assemble " << prefix << "\ta: " << a << "\tb: " << b << endl;
+		cerr << prefix << "\ta: " << a << "\tb: " << b << endl;
 		int makeup_size = 0;
 		int concatenated_pos = 0;
 		vector<string> samtools;
@@ -4772,17 +4985,18 @@ public:
 			}
 			
 			if(ori.compare("+-")  == 0 && chr1.compare(chr2) == 0 && start2 < end1){
-				if(refs.size() == 0){
-					int tmp1 = start - flanking_size - pad_local_ref;
-                    tmp1 = tmp1 > 0 ? tmp1 : 0;
-                    int tmp2 = end + flanking_size + pad_local_ref;
-                    tmp2 = tmp2 > 0 ? tmp2 : 0;
+				if(refs.size() == 0)
+                                {
+                                        int tmp1 = start - flanking_size - pad_local_ref;
+                                        tmp1 = tmp1 > 0 ? tmp1 : 0;
+                                        int tmp2 = end + flanking_size + pad_local_ref;
+                                        tmp2 = tmp2 > 0 ? tmp2 : 0;
 					refs.push_back(chr1 + ":" + itos(tmp1) + ":" + itos(tmp2)); //itos(start - flanking_size - pad_local_ref) + ":" + itos(end + flanking_size + pad_local_ref));
 					refsize = end - start + 1 + 2*flanking_size + 2*pad_local_ref;
 				}
 				posstr = chr1 + "_" + itos(start1 - pad_local_ref) + "_" + chr1 + "_" + itos(start1 - pad_local_ref) + "_" + type + "_" + itos(size) + "_" + ori; // this may contain a bug
-				pos_1 = itos(start1 - pad_local_ref);
-				pos_2 = itos(start1 - pad_local_ref);
+				pos_1 = itos(max(start1 - pad_local_ref,0));
+				pos_2 = itos(max(start1 - pad_local_ref,0));
 				// samtools view bam chr1:start1-end2;
 				//string tmp = "samtools view " + fbam + " " + chr1 + ":" + itos(start1) + "-" + itos(end2);
 				//samtools.push_back(tmp);
@@ -4794,55 +5008,58 @@ public:
 			else {
 				if(type.compare("CTX") == 0){
 					if(refs.size() == 0){
-						int tmp1 = start - flanking_size - pad_local_ref;
-						tmp1 = tmp1 > 0 ? tmp1 : 0;
-                        int tmp2 = start + flanking_size + pad_local_ref;
-                        tmp2 = tmp2 > 0 ? tmp2 : 0;
+                                                int tmp1 = start - flanking_size - pad_local_ref;
+                                                tmp1 = tmp1 > 0 ? tmp1 : 0;
+                                                int tmp2 = start + flanking_size + pad_local_ref;
+                                                tmp2 = tmp2 > 0 ? tmp2 : 0;
 						refs.push_back(chr1 + ":" + itos(tmp1) + ":" + itos(tmp2)); //itos(start - flanking_size - pad_local_ref) + ":" + itos(start + flanking_size + pad_local_ref));
-                        tmp1 = end - flanking_size - pad_local_ref;
-                        tmp1 = tmp1 > 0 ? tmp1 : 0;
-                        tmp2 = end + flanking_size + pad_local_ref;
-                        tmp2 = tmp2 > 0 ? tmp2 : 0;
+                                                tmp1 = end - flanking_size - pad_local_ref;
+                                                tmp1 = tmp1 > 0 ? tmp1 : 0;
+                                                tmp2 = end + flanking_size + pad_local_ref;
+                                                tmp2 = tmp2 > 0 ? tmp2 : 0;
 						refs.push_back(chr2 + ":" + itos(tmp1) + ":" + itos(tmp2));//itos(end - flanking_size - pad_local_ref) + ":" + itos(end + flanking_size + pad_local_ref));
 						refsize = 2*(flanking_size + pad_local_ref) + 1;
 					}					
 					posstr = chr1 + "_" + itos(start - flanking_size - pad_local_ref) + "_" + chr2 + "_" + itos(end - flanking_size - pad_local_ref) + "_" + type + "_" + itos(size) + "_" + ori;
-					pos_1 = itos(start - flanking_size - pad_local_ref);
-					pos_2 = itos(end - flanking_size - pad_local_ref);
+					pos_1 = itos(max(start - flanking_size - pad_local_ref,0));
+					pos_2 = itos(max(end - flanking_size - pad_local_ref,0));
 				}
 				else if(size > 99999){
-					if(refs.size() == 0){                        
-                        int tmp1 = start - flanking_size - pad_local_ref;
-                        tmp1 = tmp1 > 0 ? tmp1 : 0;
-                        int tmp2 = start + flanking_size;
-                        tmp2 = tmp2 > 0 ? tmp2 : 0;
+					if(refs.size() == 0){
+                                                
+                                                int tmp1 = start - flanking_size - pad_local_ref;
+                                                tmp1 = tmp1 > 0 ? tmp1 : 0;
+                                                int tmp2 = start + flanking_size;
+                                                tmp2 = tmp2 > 0 ? tmp2 : 0;
 						refs.push_back(chr1 + ":" + itos(tmp1) + ":" + itos(tmp2)); // itos(start - flanking_size - pad_local_ref) + ":" + itos(start + flanking_size));
-						tmp1 = end - flanking_size;
-                        tmp1 = tmp1 > 0 ? tmp1 : 0;
-                        tmp2 = end + flanking_size + pad_local_ref;
-                        tmp2 = tmp2 > 0 ? tmp2 : 0;
-                        refs.push_back(chr2 + ":" + itos(tmp1) + ":" + itos(tmp2)); //itos(end - flanking_size) + ":" + itos(end + flanking_size + pad_local_ref));
+						
+                                                tmp1 = end - flanking_size;
+                                                tmp1 = tmp1 > 0 ? tmp1 : 0;
+                                                tmp2 = end + flanking_size + pad_local_ref;
+                                                tmp2 = tmp2 > 0 ? tmp2 : 0;
+                                                refs.push_back(chr2 + ":" + itos(tmp1) + ":" + itos(tmp2)); //itos(end - flanking_size) + ":" + itos(end + flanking_size + pad_local_ref));
 						refsize = 2*flanking_size + pad_local_ref + 1;
 					}
 					
 					makeup_size = (end - flanking_size) - (start + flanking_size) - 1;
 					concatenated_pos = 2*flanking_size + pad_local_ref;
 					posstr = chr1 + "_" + itos(start - flanking_size - pad_local_ref) + "_" + chr2 + "_" + itos(end - 3*flanking_size - pad_local_ref) + "_" + type + "_" + itos(size) + "_" + ori;
-					pos_1 = itos(start - flanking_size - pad_local_ref);
-					pos_2 = itos(end - 3*flanking_size - pad_local_ref);
+					pos_1 = itos(max(start - flanking_size - pad_local_ref,0));
+					pos_2 = itos(max(end - 3*flanking_size - pad_local_ref,0));
 				}
 				else {
 					if(refs.size() == 0){
-						int tmp1 = start - flanking_size - pad_local_ref;
-                        tmp1 = tmp1 > 0 ? tmp1 : 0;
-                        int tmp2 = end + flanking_size + pad_local_ref;
-                        tmp2 = tmp2 > 0 ? tmp2 : 0;
+
+                                                int tmp1 = start - flanking_size - pad_local_ref;
+                                                tmp1 = tmp1 > 0 ? tmp1 : 0;
+                                                int tmp2 = end + flanking_size + pad_local_ref;
+                                                tmp2 = tmp2 > 0 ? tmp2 : 0;
 						refs.push_back(chr1 + ":" + itos(tmp1) + ":" + itos(tmp2));// itos(start - flanking_size - pad_local_ref) + ":" + itos(end + flanking_size + pad_local_ref));
 						refsize = end - start + 1 + 2*(flanking_size + pad_local_ref);	
 					}
 					posstr = chr1 + "_" + itos(start1 - pad_local_ref) + "_" + chr1 + "_" + itos(start1 - pad_local_ref) + "_" + type + "_" + itos(size) + "_" + ori;
-					pos_1 = itos(start1 - pad_local_ref);
-					pos_2 = itos(start1 - pad_local_ref);
+					pos_1 = itos(max((start1 - pad_local_ref),0));
+					pos_2 = itos(max(start1 - pad_local_ref,0));
 				}
 				
 				string reg1, reg2;
@@ -4877,11 +5094,83 @@ public:
 		}
 		
 		if(refsize > 1e6){
-			cerr << "\tReference size " << refsize << " too large, skip ... " << endl;
+			cerr << "reference size " << refsize << " too large, skip ... " << endl;
 			return 0;
 		}
 		
-		/*if((makeup_size > 0) && write_to_ref){ // piece together 2 refs as one
+		string cmd;
+		// skip;
+		// create reference
+		cerr << "Use samtools faidx to fetch fai\n";
+		string ref_string(""); // variable to be passed to tigra
+		if(reference_file.length() != 0){
+			string ref_file = reference_file;
+			ofstream REF;
+			if(write_to_ref){
+				// move here to handle open and append
+				string write_to_ref_file = datadir + "/" + prefix + ".ref.fa";
+				REF.open(write_to_ref_file.c_str());
+			}
+                        int ii = 0; // for the track of the time to write to ref
+			for (int i = 0; i < refs.size(); i++) {
+				string ref = refs[i];
+				//cout << "ref region: " << ref << endl;
+                                vector<string> tmp;
+				tl.split(ref, ":", tmp);
+				string chr_ref = tmp[0];
+				string start_ref = tmp[1];
+				string end_ref = tmp[2];
+				
+				//string ref_file = "/gscuser/kchen/sata114/kchen/Hs_build36/all_fragments/Homo_sapiens.NCBI36.45.dna.chromosome." + chr_ref + ".fa";
+				string region = chr_ref + ":" + start_ref + "-" + end_ref;
+				// skip
+				/*if(i == 0)
+				 cmd = "expiece " + start_ref + " " + end_ref + " /gscuser/kchen/sata114/kchen/Hs_build36/all_fragments/Homo_sapiens.NCBI36.45.dna.chromosome." + chr_ref + ".fa > " + datadir + "/" + prefix + ".ref.fa";
+				 else
+				 cmd = "expiece " + start_ref + " " + end_ref + " /gscuser/kchen/sata114/kchen/Hs_build36/all_fragments/Homo_sapiens.NCBI36.45.dna.chromosome." + chr_ref + ".fa >> " + datadir + "/" + prefix + ".ref.fa";*/
+				// skip
+				//system(cmd.c_str());
+				//cerr << cmd << endl;
+				// use samtools faidx rather than expiece
+				char *s=NULL;
+				int l;
+				faidx_t *fai;
+				fai = fai_load(ref_file.c_str());
+				if(fai == 0){
+					cerr << "Error in reading reference file! Will skip this step. \n";
+					continue;
+				}
+				cerr << "Reference: " << fai << endl;
+				s = fai_fetch(fai, region.c_str(), &l);
+				if(s==NULL || strlen(s)<=0){
+				  cerr << "Failed to load the reference.  Please check chromosome naming between the reference fasta header and the SV calls." << endl;
+				}
+				else{
+				  ref_string += s;
+				  if(write_to_ref){
+				    int j, k;
+				    ii++;
+				    if(REF.is_open()){
+                                        if(makeup_size <= 0 || ii == 1)
+                                        REF << ">" << region << "\n";// write the first header only when makeup_size > 0
+				      for(j = 0; j < l; j+= 60){
+					for(k = 0; k < 60 && k < l-j; ++k)
+					  REF << s[j+k];
+    				        REF << endl;
+                                      }
+				    }					
+				  }
+				}
+				free(s);
+				fai_destroy(fai);
+			}
+			if(REF.is_open())
+				REF.close();
+		}
+		else
+			cerr << "Skip Reading reference. \n";
+		
+/*		if((makeup_size > 0) && write_to_ref){ // piece together 2 refs as one
 			string tmp = "head -n 1 " + datadir + "/" + prefix + ".ref.fa > " + datadir + "/" + prefix + ".ref.fa.tmp";
 			system(tmp.c_str());
 			tmp = "grep -v : " + datadir + "/" + prefix + ".ref.fa >> " + datadir + "/" + prefix + ".ref.fa.tmp";
@@ -4895,7 +5184,9 @@ public:
 		samfile_t *in = 0; // get ready
 		char in_mode[5] = "rb";
 		char *fn_list = 0;
-	
+		char *fn_ref = 0;
+		char *fn_rg = 0;
+		
 		vector<string> buffer;
 		ifstream ifile(freads.c_str());
 		if(1){//! ifile || ifile){ // no I skip
@@ -4906,7 +5197,7 @@ public:
 				vector<read_data> reads;
 				map<string, uint32_t> max_mapqual;
 				map<string, int32_t> min_NM;
-				//cerr << scmd << endl;
+				cerr << scmd << endl;
 				//system(scmd);
 				char *bam_name_;
 				bam_name_ = new char[samtools[i].length()+1];
@@ -4922,12 +5213,13 @@ public:
 				}
 				bamFile fp = in->x.bam;
 				bam1_t *b = bam_init1();
-				// chromosome defined		
+				// chromosome defined
+				bam_index_t *idx;		
 				int tid, beg, end, n_off;		
 				string chr_str = samtools[i+1];
 				pair64_t *off;
 				//bamFile fp;
-				cerr << "\tRead " << chr_str << " from: " << samtools[i] << endl;
+				cerr << samtools[i] << chr_str << endl;
 				off = ReadBamChr_prep(chr_str, samtools[i], &tid, &beg, &end, in, &n_off);
 				//if(off[0].u == -1 && off[0].v == -1){
 				if(off==NULL){
@@ -4936,7 +5228,7 @@ public:
 				}
 				//bamFile fp = in->x.bam;
 				uint64_t curr_off;
-				int ii, n_seeks;
+				int ii, ret, n_seeks;
 				n_seeks = 0; ii = -1; curr_off = 0;
 				while(int while_index = ReadBamChr(b, fp, tid, beg, end, &curr_off, &ii, &n_seeks, off, n_off)){
 					if(while_index == -1)
@@ -5012,7 +5304,7 @@ public:
 				bam_destroy1(b);
 			}
 			if(nreads <= 0){
-				cerr << "\tNo qualified reads from bam, skip ... \n";
+				cerr << "no qualified reads from bam, skip ... \n";
 				return 0;
 			}
 			float avgseqlen = float(seqlen)/float(nreads);
@@ -5042,7 +5334,7 @@ public:
 				OUT.close();
 			}
 			if(regionsize <= 0){
-				cerr << "\tRegion size <= 0, skip ... \n";
+				cerr << "region size <= 0, skip ... \n";
 				return 0;
 			}
 			regionsize += int(2*avgseqlen);
@@ -5051,110 +5343,23 @@ public:
 				if(avgdepth <= 0)
 					cerr << "no coverage, skip ...\n";
 				if(avgdepth > high_depth_skip)
-				  cerr << "\tCoverage: " << avgdepth << " > " << high_depth_skip << ", skip ... \n";
+				  cerr << "coverage: " << avgdepth << " > " << high_depth_skip << ", skip ... \n";
 				return 0;
 			}
 		}
-		cerr << "\t#Reads:"<< nreads << "\t#SVReads:" << nSVreads << "\tRegionSize:" << regionsize << "\tAvgCoverage:" << avgdepth << endl;
+		cerr << "#Reads:"<< nreads << "\t#SVReads:" << nSVreads << "\tRegionSize:" << regionsize << "\tAvgCoverage:" << avgdepth << endl;
 		// Assemble
-        /// record index info here
-        //index_fh.open(index_file.c_str(), ios::app);
-        //index_fh << index << "\t" << prefix << "." << itos(regionsize) << "." << pos_1 << "." << pos_2 << "\n";
-        //index_fh.close();
-                
-        string cmd;
-		// skip;
-		// create reference
-		//cerr << "Use samtools faidx to fetch fai\n";
-		string ref_string(""); // variable to be passed to tigra
-		if(reference_file.length() != 0){
-			string ref_file = reference_file;
-			//ofstream REF;
-			/*if(write_to_ref){
-				// move here to handle open and append
-				//string write_to_ref_file = datadir + "/" + prefix + ".ref.fa";
-				string write_to_ref_file = datadir + "/ref.fa";
-				REF.open(write_to_ref_file.c_str(), ios::app);
-			}*/
-            int ii = 0; // for the track of the time to write to ref            
-            //REF.open(write_to_ref_file.c_str(), ios::app);
-			
-			for (int i = 0; i < refs.size(); i++) {
-				string ref = refs[i];
-				//cout << "ref region: " << ref << endl;
-                vector<string> tmp;
-				tl.split(ref, ":", tmp);
-				string chr_ref = tmp[0];
-				string start_ref = tmp[1];
-				string end_ref = tmp[2];
-				
-				//string ref_file = "/gscuser/kchen/sata114/kchen/Hs_build36/all_fragments/Homo_sapiens.NCBI36.45.dna.chromosome." + chr_ref + ".fa";
-				string region = chr_ref + ":" + start_ref + "-" + end_ref;
-				// skip
-				/*if(i == 0)
-				 cmd = "expiece " + start_ref + " " + end_ref + " /gscuser/kchen/sata114/kchen/Hs_build36/all_fragments/Homo_sapiens.NCBI36.45.dna.chromosome." + chr_ref + ".fa > " + datadir + "/" + prefix + ".ref.fa";
-				 else
-				 cmd = "expiece " + start_ref + " " + end_ref + " /gscuser/kchen/sata114/kchen/Hs_build36/all_fragments/Homo_sapiens.NCBI36.45.dna.chromosome." + chr_ref + ".fa >> " + datadir + "/" + prefix + ".ref.fa";*/
-				// skip
-				//system(cmd.c_str());
-				//cerr << cmd << endl;
-				// use samtools faidx rather than expiece
-				char *s=NULL;
-				int l;
-				faidx_t *fai;
-				fai = fai_load(ref_file.c_str());
-				if(fai == 0){
-					cerr << "Error in reading reference file! Will skip this step. \n";
-					continue;
-				}
-				//cerr << "Reference: " << index << "\t" << fai << endl;
-				s = fai_fetch(fai, region.c_str(), &l);
-				if(s==NULL || strlen(s)<=0){
-				  cerr << "Failed to load the reference.  Please check chromosome naming between the reference fasta header and the SV calls." << endl;
-				}
-				else{
-					ref_string += s;
-					//if(write_to_ref){
-						int j, k;
-						ii++;
-                                    
-						if(REF.is_open()){
-							if(makeup_size <= 0 || ii == 1)
-								REF << ">" << prefix << "," << region << "\n";// write the first header only when makeup_size > 0
-							for(j = 0; j < l; j+= 60){
-								for(k = 0; k < 60 && k < l-j; ++k)
-									REF << s[j+k];
-								REF << endl;
-							}
-						}					
-					//}
-				}
-				free(s);
-				fai_destroy(fai);
-			}
-			//if(REF.is_open())
-			//	REF.close();
-		}
-		else
-			cerr << "Skip Reading reference. \n";
-
-		tigra TG(prefix);
-//		TG.alternative_haplotype = datadir + "/" + prefix + /*".a" + a_str + ".b" + b_str +*/  "." + itos(regionsize) + "." + pos_1 + "." + pos_2 + ".fa.contigs.het.fa";
-//		TG.alternative_haplotype = datadir + "/fa.contigs.het.fa";
-		TG.alternative_haplotype = alternative_haplotype;
-//		TG.assembly_file = datadir + "/" + prefix + /*".a" + a_str + ".b" + b_str +*/ "." + itos(regionsize)  + "." + pos_1 + "." + pos_2 + ".fa.contigs.fa";
-//		TG.assembly_file = datadir + "/fa.contigs.fa";
-		TG.assembly_file = assembly_file;
+		tigra TG;
+		TG.alternative_haplotype = datadir + "/" + prefix + /*".a" + a_str + ".b" + b_str +*/  "." + itos(regionsize) + "." + pos_1 + "." + pos_2 + ".fa.contigs.het.fa";
+		TG.assembly_file = datadir + "/" + prefix + /*".a" + a_str + ".b" + b_str +*/ "." + itos(regionsize)  + "." + pos_1 + "." + pos_2 + ".fa.contigs.fa";
 		//TG.reference_for_screen = datadir + "/" + prefix + ".ref.fa";
 		TG.reference_for_screen = ref_string;
 		TG.estimate_STR = "SV";
-		TG.kmer_size = "15,25";
-        TG.max_node = max_node;
-        TG.index = index; 
-        float tmp1 = avgdepth/100.0;
-        tmp1 = (tmp1 < 2) ? 2:tmp1;
+        TG.kmer_size = kmers;
+                TG.max_node = max_node;
+                float tmp1 = avgdepth/100.0;
+                tmp1 = (tmp1 < 2) ? 2:tmp1;
 		TG.low_kmer = tmp1;
-		TG.min_contig_size=min_contig_size;
 		//vector<string> fastas;
 		//fastas.push_back(datadir + "/" + prefix + /*".a" + a_str + ".b" + b_str +*/ ".fa");
 		// now to read from buffer directly;
@@ -5165,8 +5370,6 @@ public:
 		//TG.run_tigra(fastas);
 		TG.run_tigra(buffer);
 		// done with tigra
-		cerr << "\tSucceeded" << endl;
-		return EXIT_SUCCESS;
 	}	
 	
 	int write_to_bams(BD_data SV){
@@ -5188,18 +5391,13 @@ public:
 				cerr << "Didn't find the bam in the bam list file.\n";
 			
 		}
-		else{ 
-			if(!bamsmap.empty()){
-				for(map<string, string>::iterator bamsmap_it = bamsmap.begin(); bamsmap_it != bamsmap.end(); bamsmap_it++)
-					bams.push_back((*bamsmap_it).second);	
-				ret = 1;
-				//cerr << "Cannot find bam related column or string!\n";
-			}
-		}
+		else 
+			cerr << "Cannot find bam related column or string!\n";
+		
 		return ret;
 	}
 	
-	int assemble_func(){//string BreakDancer_file, vector<string> bams){
+	void assemble_func(){//string BreakDancer_file, vector<string> bams){
 		struct stat stFileInfo; 
 		int intStat = stat(reference_file.c_str(),&stFileInfo); 
 		if(intStat != 0){
@@ -5211,53 +5409,46 @@ public:
 			ReadBDCoor(BreakDancer_file, SVs); // skip library_to_skip_ at the moment
 		else // support pcr format
 			ReadPCRCoor(PCR_file, SVs);
-		cerr << SVs.size() << " SVs to be assembled from" << endl;
-		//cerr << "Bams: ";
-		
-		if(! bamsmap.empty()){
-			for(map<string, string>::iterator bamsmap_it = bamsmap.begin(); bamsmap_it != bamsmap.end(); bamsmap_it++)
-				//cerr << "\t" << (*bamsmap_it).first << ":" << (*bamsmap_it).second << endl;
-				cerr << "\t" << (*bamsmap_it).second << endl;			
+		cout << "#" << SVs.size() << " SVs to be assembled from" << endl;
+		cout << "#Bams: ";
+		if(bams.size() != 0){
+			cout << bams[0];
+			for(int i = 1; i < bams.size(); i++)
+				cout << ", " << bams[i];
 		}
 		else{
-			if(bams.size() != 0){
-				cerr << "\t" << bams[0] << endl;
-				for(int i = 1; i < bams.size(); i++)
-					cerr << "\t" << bams[i] << endl;
-			}
-			else {
-				cerr << "Please specify at least one bam file through commandline argument or the -f option" <<endl;
-				return EXIT_FAILURE;
-			}
-
+			for(map<string, string>::iterator bamsmap_it = bamsmap.begin(); bamsmap_it != bamsmap.end(); bamsmap_it++)
+				cout << (*bamsmap_it).first << ":" << (*bamsmap_it).second << "\n";
 		}
+		cout << endl;
 		
-		//cerr << "#Tigra_sv version:" << version;
-		//cerr << "\tParameters: \n";
+		cout << "#Version-" << version;
+		cout << "\tParameters: \n";
+		// foreach my $opt(keys %opts){printf "\t%s",join(':',$opt,$opts{$opt});} print "\n"; skip
+		//if($opts{k}){ skip
 		//cout << "#Chr1\tPos1\tOrientation1\tChr2\tPos2\tOrientation2\tType\tSize\tScore\tnum_Reads\tnum_Reads_lib\tAllele_frequency\tVersion\tRun_Param\tAsmChr1\tAsmStart1\tAsmChr2\tAsmStart2\tAsmOri\tAsmSize\tAsmHet\tAsmScore\tAlnScore\twAsmScore\n";
-        //cout << "#CHR1\tPOS1\tCHR2\tPOS2\tORI\tSIZE\tTYPE\tHET\twASMSCORE\tTRIMMED_CONTIG_SIZE\tALIGNED\%\tNUM_SEG\tNUM_FSUB\tNUM_FINDEL\tBP_FINDEL\tMicroHomology\tMicroInsertion\tPREFIX\tASMPARM\tCopyNumber\tGene\tKnown\n";
+                cout << "#CHR1\tPOS1\tCHR2\tPOS2\tORI\tSIZE\tTYPE\tHET\twASMSCORE\tTRIMMED_CONTIG_SIZE\tALIGNED\%\tNUM_SEG\tNUM_FSUB\tNUM_FINDEL\tBP_FINDEL\tMicroHomology\tMicroInsertion\tPREFIX\tASMPARM\tCopyNumber\tGene\tKnown\n";
 		
+		//else{
+		//#printf "%s\t%d(%d)\t%s\t%d(%d)\t%s\t%d(%d)\t%s(%s)\t%s\t%d\t%d\t%d\%\t%d\t%d\t%d\t%d\t%d\t%d\t%s\ta%d.b%d\n",$maxSV->{chr1},$maxSV->{start1},$start,$maxSV->{chr2},$maxSV->{start2},$end,$maxSV->{ori},$maxSV->{size},$size,$maxSV->{type},$type,$maxSV->{het},$maxSV->{weightedsize},$maxSV->{read_len},$maxSV->{fraction_aligned}*100,$maxSV->{n_seg},$maxSV->{n_sub},$maxSV->{n_indel},$maxSV->{nbp_indel},$maxSV->{microhomology},$maxSV->{scarsize},$prefix,$maxSV->{a},$maxSV->{b};
+		//			print "\#CHR1\tPOS1\tCHR2\tPOS2\tORI\tSIZE\tTYPE\tHET\twASMSCORE\tTRIMMED_CONTIG_SIZE\tALIGNED\%\tNUM_SEG\tNUM_FSUB\tNUM_FINDEL\tBP_FINDEL\tMicroHomology\tMicroInsertion\tPREFIX\tASMPARM\tCopyNumber\tGene\tKnown\n";
+		//		} skip
+		
+		/*if($opts{v}){open(FN,">$opts{v}") || die "unable to open $opts{v}\n";}
+		 if($opts{r}){open(ALNOUT,">$opts{r}") || die "unable to open $opts{r}\n";}
+		 
+		 my @as; my @bs;
+		 @as=(defined $opts{a})?($opts{a}):(50,100,150);
+		 @bs=(defined $opts{b})?($opts{b}):(50,100,150);
+		 if($opts{H}){@as=(50); @bs=(100);$opts{p}=10000;}  #parameteres for capture data
+		 if($opts{e}){my $stepsize=int($opts{l}/2); @as=($stepsize); @bs=($stepsize);} skip */
 		int as = 50;
 		int bs = 100;
-	
-        //ofstream index_fh;
-        //index_fh.open(index_file.c_str(), ios::trunc);
-        //index_fh.close();
-
-		if(write_to_ref_file.length()>0){
-            REF.open(write_to_ref_file.c_str(), ios::trunc);
-		}
+		
 		//srand(time ^ $$); skip
-                
-        ofstream ofs1;
-        ofs1.open(alternative_haplotype.c_str(), ios::trunc);
-		ofs1.close();
-        ofs1.open(assembly_file.c_str(), ios::trunc);
-        ofs1.close();
 		string prefix;
 		for(int i = 0; i < SVs.size(); i++){
 			BD_data SV = SVs[i];
-
 			string chr1 = SV.chr1;
 			//if(chr1.find("chr") != string::npos)
 			//	chr1.replace(chr1.find("chr"), 3, "");
@@ -5265,11 +5456,11 @@ public:
 			string chr2 = SV.chr2;
 			//if(chr2.find("chr") != string::npos)
 			//	chr2.replace(chr2.find("chr"), 3, "");
-            if(chromosome.length() > 0 && chr2.compare(chromosome) != 0)
-				continue;
+                        if(chromosome.length() > 0 && chr2.compare(chromosome) != 0)
+                            continue;
 			int end = SV.pos2;
 			string type = SV.type;
-			//if(type.compare("INV") == 0){
+                        //if(type.compare("INV") == 0){
 			//	cerr << "Skip " << chr1 << "." << start << "." << chr2 << "." << end << "." << type << ", do not support INV assembly now. " << endl;
 			//	continue;
 			//}
@@ -5283,6 +5474,20 @@ public:
 				end = tmp;
 			}
 			string start_end;
+			/*if($opts{e}){
+			 for(my $s=$start-$opts{e};$s<=$start+$opts{e};$s+=$opts{l}){
+			 for(my $e=$end-$opts{e}; $e<=$end+$opts{e};$e+=$opts{l}){
+			 push @start_ends,join(',',$s,$e);
+			 }
+			 }
+			 }
+			 else{
+			 @start_ends=join(',',$start,$end);
+			 }
+			 skip*/
+			
+			/*foreach (@start_ends){
+			 ($start,$end)=split /\,/; skip */
 			vector<string> prefixes;
 			string ori = "+-";
 			string prefix_tmp = chr1 + "." + itos(start) + "." + chr2 + "." + itos(end) + "." + type + "." + itos(size) + "." + ori;
@@ -5319,11 +5524,6 @@ public:
 			}
 		}
 		cerr << "AllDone\n";
-        index_fh.close();
-                
-		if(REF.is_open())
-			REF.close();
-		return EXIT_SUCCESS;
 	}	
 };
 
@@ -5338,30 +5538,20 @@ int main(int argc, char *argv[])
 	int assemble_read_qual = 1; // q
 	int num_mismatch_poor_map = 5; // N
 	int high_depth_skip = 1000; // p
-	int max_node = 100; // h
+        int max_node = 100; // h
 	int qual_threshold = 0; // Q
 	int breakdancer_format = 0; // b by default off
 	string library_to_skip(""); // L
 	string datadir = "."; // I mandatory
-	//int write_to_ref = 0; // r by default off
+	int write_to_ref = 0; // r by default off
 	int write_to_read = 0; // d by default off
-	string chr = ""; // specify chromosome to parallelizing
-	int skip_call = 0; // z skip running calls before this number
-	int min_size_threshold = 3; // M skip those with input size smaller than 3
-	int min_contig_size=50;
-	string alternative_haplotype = ""; // H fa.het.contigs.fa
-	string assembly_file = ""; // f fa.contigs.fa
-	string write_to_ref_file = ""; // P ref.fa
-	// index_file
-	//string index_file = ""; // index file to record the calls getting contigs
-
-	//string reference_file = "/gscmnt/839/info/medseq/reference_sequences/NCBI-human-build36/all_sequences.fa"; // R reference file location; full path
-	string reference_file;
-	string f_bamfiles;
+        string chr = ""; // specify chromosome to parallelizing
+        int skip_call = 0; // z skip running calls before this number
+        int min_size_threshold = 3; // M skip those with input size smaller than 3
+	string reference_file = "/gscmnt/839/info/medseq/reference_sequences/NCBI-human-build36/all_sequences.fa"; // R reference file location; full path
+    string kmers = "15,25";
 	
-	cerr << "Tigra_sv version-" << version << endl;
-	cerr << "Arguments: "; for (int idx=1; idx<argc; idx++) cerr << " " << argv[idx]; cerr<<endl;
-	while((c = getopt(argc, argv, "A:l:w:q:N:p:I:Q:L:br:dR:c:M:h:i:H:o:s:f:")) >= 0){
+	while((c = getopt(argc, argv, "A:l:w:q:N:p:I:Q:L:brdR:c:M:h:k:")) >= 0){
 		switch(c) {
 			case 'A': estimate_max_ins = atoi(optarg); break;
 			case 'l': flanking_size = atoi(optarg); break;
@@ -5373,54 +5563,42 @@ int main(int argc, char *argv[])
 			case 'Q': qual_threshold = atoi(optarg); break;
 			case 'L': library_to_skip = strdup(optarg); break;
 			case 'b': breakdancer_format = 1; break;
-			//case 'r': write_to_ref = 1; break;
+			case 'r': write_to_ref = 1; break;
 			case 'd': write_to_read = 1; break;
 			case 'R': reference_file = strdup(optarg); break;
-			case 'c': chr = strdup(optarg); break;
-            case 'z': skip_call = atoi(optarg); break;
-            case 'M': min_size_threshold = atoi(optarg); break;          
-            case 'h': max_node = atoi(optarg); break;
-            //case 'i': index_file = strdup(optarg); break;
-            case 'H': alternative_haplotype = strdup(optarg); break;
-            case 'o': assembly_file = strdup(optarg); break;
-            case 'r': write_to_ref_file = strdup(optarg); break;
-			case 's': min_contig_size = atoi(optarg); break;
-			case 'f': f_bamfiles=strdup(optarg); break;
+                        case 'c': chr = strdup(optarg); break;
+                        case 'z': skip_call = atoi(optarg); break;
+                        case 'M': min_size_threshold = atoi(optarg); break;          
+                        case 'h': max_node = atoi(optarg); break;
+                        case 'k': kmers = string(optarg); break;
 			default: fprintf(stderr, "Unrecognized option '-%c'.\n", c);
-			//return EXIT_SUCCESS;
+				return 1;
 		}
 	}
 	
 	if(optind == argc){
-		fprintf(stderr, "\n./tigra_sv <SV file> [<a.bam> <b.bam> ...]\n\n");
-		//fprintf(stderr, "\n Or: ./tigra_sv <SV file> <bam_list_file>\n\nOptions: \n");
-		fprintf(stderr, "\nOptions: \n");
-		//fprintf(stderr, "	-A INT	Esimated maximal insert size [%d]\n", estimate_max_ins);
-		fprintf(stderr, "	-l INT	Assembly [%d] bp from the SV breakpoints\n", flanking_size);
-        fprintf(stderr, "	-c STR  Only assemble calls on chromosome [STR]\n");
-        fprintf(stderr, "	-o FILE	Save assembly contigs to [FILE]\n");
-		fprintf(stderr, "	-s INT	Only output contigs longer than [%d] bp\n", min_contig_size);
-		fprintf(stderr, "	-R FILE	Path to the wildtype reference fasta\n");
-		fprintf(stderr, "	-r FILE Create pair-wise local reference sequence fastas in [FILE]\n");
-		fprintf(stderr, "	-w INT	Pad local reference by additional [%d] bp on both ends\n", pad_local_ref);
-		fprintf(stderr, "	-q INT	Only assemble reads with mapping quality > [%d]\n", assemble_read_qual);
-		fprintf(stderr, "	-N INT	Highlight segments supported by SVReads that differ from reference by at least [%d] mismatches\n", num_mismatch_poor_map);
-		fprintf(stderr, "	-p INT	Ignore cases that have average read depth greater than [%d]\n", high_depth_skip);
-		//fprintf(stderr, "	-d	Dump reads by case into fasta files\n");
-		//fprintf(stderr, "	-I STR	Save reads fasta into an existing directory\n");
-		fprintf(stderr, "	-b	The input file is in breakdancer format\n");
-		fprintf(stderr, "	-f	Provide a text file containing rows of sample:bam mapping\n");
-		fprintf(stderr, "	-M INT  Skip SVs shorter than [%d] bp\n", min_size_threshold);
-		fprintf(stderr, "	-h INT  Skip complex contig graphs with more than [%d] nodes\n", max_node);
-        //fprintf(stderr, "   -i STR  Index file to be saved\n");
-        //fprintf(stderr, "   -H STR  Alternative haplotype file with full path\n");
+		fprintf(stderr, "\n./tigra_sv <SV file> <a.bam> <b.bam> ...\n\n");
+		fprintf(stderr, "\n Or: ./tigra_sv <SV file> <bam_list_file>\n\nOptions: \n");
+		//fprintf(stderr, "	-A INT		Esimated maximal insert size [%d]\n", estimate_max_ins);
+		fprintf(stderr, "	-l INT		Flanking size for assembly [%d] bp\n", flanking_size);
+                fprintf(stderr, "	-c STR          Only assemble calls on specified chromosome\n");
+		fprintf(stderr, "	-R STR		Reference file location with the full path\n");
+		fprintf(stderr, "	-q INT		Only assemble reads with mapping quality > [%d]\n", assemble_read_qual);
+		fprintf(stderr, "	-N INT		Number of mismatches required to be tagged as poorly mapped [%d]\n", num_mismatch_poor_map);
+		fprintf(stderr, "	-p INT		Ignore cases that have average read depth greater than [%d]\n", high_depth_skip);
+		fprintf(stderr, "	-r		Write local reference to a file with .ref.fa as the suffix\n");
+		fprintf(stderr, "	-d		Dump reads to fasta files\n");
+		fprintf(stderr, "	-I STR	        Save output files into an existing directory\n");
+		fprintf(stderr, "	-w INT		Pad local reference by additional [%d] bp on both ends\n", pad_local_ref);
+		fprintf(stderr, "	-b		Check when the input format is breakdancer\n");
+                fprintf(stderr, "       -M INT          Skip those calls with input size smaller than [%d]\n", min_size_threshold);
+                fprintf(stderr, "       -h INT          Maximum node to assemble, by default [%d]\n", max_node);
+                fprintf(stderr, "	-k STR		List of kmer sizes to use as a comma delimited string [%s]\n", kmers.c_str());
+		//fprintf(stderr, "	-Q INT		Minimal BreakDancer score required for analysis [%d]\n", qual_threshold);
+		//fprintf(stderr, "	-L STRING	Ignore calls supported by libraries that contains (comma separated) STRING\n");
 
-        
-		//fprintf(stderr, "	-Q INT	Minimal BreakDancer score required for analysis [%d]\n", qual_threshold);
-		//fprintf(stderr, "	-L STR	Ignore calls supported by libraries that contains (comma separated) STRING\n");
-
-		fprintf(stderr, "Version: %s\n",version.c_str());
-		return EXIT_SUCCESS;
+		fprintf(stderr, "Version: %s (commit %s)\n", __g_prog_version, __g_commit_hash);
+		return 1;
 	}
 	
 	assemble AS;
@@ -5433,45 +5611,227 @@ int main(int argc, char *argv[])
 	AS.datadir = datadir;
 	AS.qual_threshold = qual_threshold;
 	AS.library_to_skip_ = library_to_skip;
-	//AS.write_to_ref = write_to_ref;
+	AS.write_to_ref = write_to_ref;
 	AS.write_to_read = write_to_read;
 	AS.reference_file = reference_file;
-	AS.chromosome = chr;
-	AS.skip_call = skip_call;
-	AS.min_size_threshold = min_size_threshold;
-	AS.min_contig_size=min_contig_size;
-	AS.max_node = max_node;
-	//AS.index_file = index_file;
-	AS.assembly_file = assembly_file;
-	//AS.alternative_haplotype = alternative_haplotype;
-	AS.alternative_haplotype = assembly_file;
-	AS.write_to_ref_file = write_to_ref_file;
+        AS.chromosome = chr;
+        AS.skip_call = skip_call;
+        AS.min_size_threshold = min_size_threshold;
+        AS.max_node = max_node;
+        AS.kmers = kmers;
 	
 	if(breakdancer_format == 1)
 		AS.BreakDancer_file = argv[optind];
 	else
 		AS.PCR_file = argv[optind];
-
-	if(optind+1<argc){
-		int optindex = optind + 1;
-		string arg1(argv[optindex]);
-	
-		if(arg1.find(".bam") < string::npos){
-			while(optindex < argc){
-				AS.bams.push_back(argv[optindex]);
-				optindex ++;
-			}		
-		}
-	}
-	if(f_bamfiles.length()>0){
+	int optindex = optind + 1;
+	string arg1(argv[optindex]);
+	if(arg1.find(".bam") == string::npos){
 		map<string, string> bams;
 		tools tl;
-		tl.analyze_BAM_list(bams, f_bamfiles);
-		AS.bamsmap = bams;		
+		tl.analyze_BAM_list(bams, arg1);
+		AS.bamsmap = bams;
 	}
-
-	return AS.assemble_func();
+	else{
+		while(optindex < argc){
+			AS.bams.push_back(argv[optindex]);
+			optindex ++;
+		}
+	}
+	AS.assemble_func();
+	return EXIT_SUCCESS;
 }
+	
+/*int main(int argc, char *argv[])
+{
+	int c;
+	string kmer_size("15");
+	float min_kmer_cov = 3;
+	int low_kmer = 2;
+	int high_kmer = 2e9;
+	string assembly_file;
+	int tip_number = 1000;
+	string alternative_haplotype;
+	string estimate_STR;
+	string reference_for_screen;
+	int max_node = 100;
+	int min_degree = 2;
+	string graph_file;
+	int debug = 0;
+	cout << "PID of this process: " << getpid() << endl;
+	while((c = getopt(argc, argv, "k:c:m:M:o:t:h:p:r:n:N:g:d")) >= 0){
+		switch(c) {
+			case 'k': kmer_size = strdup(optarg); break;
+			case 'c': min_kmer_cov = atof(optarg); break;
+			case 'm': low_kmer = atoi(optarg); break;
+			case 'M': high_kmer = atoi(optarg); break;
+			case 'o': assembly_file = strdup(optarg); break;
+			case 't': tip_number = atoi(optarg); break;
+			case 'h': alternative_haplotype = strdup(optarg); break;
+			case 'p': estimate_STR = strdup(optarg); break;
+			case 'r': reference_for_screen = strdup(optarg); break;
+			case 'n': max_node = atoi(optarg); break;
+			case 'N': min_degree = atoi(optarg); break;
+			case 'g': graph_file = strdup(optarg); break;
+			case 'd': debug = 1; break;
+				
+			default: fprintf(stderr, "Unrecognized option '-%c'.\n", c);
+				return 1;
+		}
+	}
+	if(optind == argc){
+		fprintf(stderr, "\n");
+		fprintf(stderr, "tigra <fasta.fa>\n\n");
+		fprintf(stderr, "Options: \n");
+		if(optind == argc){
+			fprintf(stderr, "\n");
+			//fprintf(stderr, "./tigra <fasta.fa>\n\n");
+			//fprintf(stderr, "Options: \n");
+			fprintf(stderr, "       -k STRING		Specify Kmer sizes, Use comma to delimit multiple kmers\n");
+			fprintf(stderr, "	-c FLOAT		Minimal average kmer coverage [%f] for a contig to be considered in the alternative haplotypes\n", min_kmer_cov);
+			fprintf(stderr, "       -m INT          Lowest Kmer frequency in initial hashing [%d]\n", low_kmer);		 
+			fprintf(stderr, "       -M INT          Highest Kmer frequency in initial hashing [%d]\n", high_kmer);		
+			fprintf(stderr, "       -o STRING       File to save primary assembly contigs\n");		 
+			fprintf(stderr, "	-p STRING		Estimate the utility of the subset of reads containing STR in header\n");
+			fprintf(stderr, "	-r STRING		Provide a reference to screen for non-reference kmers\n");
+			fprintf(stderr, "       -t INT          Tip number [%d]\n", tip_number);	
+			fprintf(stderr, "       -h STRING       File to save alternative haplotypes\n");	
+			fprintf(stderr, "	-n INT			Maxmimal number of nodes allowed for constructing alternative haplotypes [%d]\n", max_node); 
+			fprintf(stderr, "	-N INT			Minimal number of degrees for a node to consider as start of alternative haplotype [%d]\n", min_degree);
+			fprintf(stderr,	"	-g STRING		Save assembly graph(png) in FILE\n");
+			fprintf(stderr, "       -d INT          Turn on debug mode, generate intermediate files\n");
+			fprintf(stderr, "Version: %s\n", version);
+			fprintf(stderr, "\n");
+			return 1;
+		}
+		fprintf(stderr, "\n");
+		return 1;
+	}
+	
+	// print options
+	char options_[500];	
+	sprintf(options_,"-c %f -m %d -M %d -t %d -n %d -N %d -d %d", min_kmer_cov, low_kmer, high_kmer, tip_number, max_node, min_degree, debug);
+	options = options_;
+	options += "-k" + kmer_size;
+	options += "-o" + assembly_file;
+	options += "-h" + alternative_haplotype;
+	options += "-p" + estimate_STR;
+	options += "-r" + reference_for_screen;
+	options += "-g" + graph_file;
+	
+	map<int, int> contigtips;
+	map<int, map<string, string> > contigs;	
+	vector<string> fastas;
+	
+	int optindex = optind;
+	while(optindex < argc){
+		fastas.push_back(argv[optindex]);
+		optindex ++;
+	}
+	
+	main_functions mf(debug, low_kmer, high_kmer, contigs, contigtips, fastas, tip_number, estimate_STR);
+	int fastas_ = 1;
+	int contigs_ = 0;
+	vector<string> Reads;
+	string fasta_ = "";
+	vector<string> pReads;
+	mf.getReads(fastas_, contigs_, Reads, fasta_, pReads);
+	mf.Reads = Reads;
+	if(debug == 1){
+		string fileName = "getReads";
+		ofstream fh;
+		fh.open(fileName.c_str());
+		for(int i = 0; i < Reads.size(); i++)
+			fh << Reads[i] << "\n";
+		fh.close();
+	}
+	
+	vector<string> kmers;
+	string sep = ",";
+	tools tl;
+	tl.split(kmer_size, sep, kmers);
+	string kmer_debug = kmers[0];
+	mf.initial_iteration(atoi(kmers[0].c_str()));
+	for(int i = 1; i < kmers.size(); i++){
+		mf.contigtips = map<int, int>();
+		int kmer = atoi(kmers[i].c_str());
+		mf.iteration(kmer, mf.contigs, Reads);
+	}
+	
+	/*string refseq = "";
+	if(reference_for_screen.length() != 0){
+		refseq = reference_for_screen;// read that in kmergen rather than here
+	}*/
+	
+	/*int total_;
+	map<string, int> phh;
+	if(int(pReads.size()) - 1 >= 0){
+		kmergen pkg;
+		pkg.set_kmer_size(atoi(kmers[kmers.size() - 1].c_str()));
+		pkg.c = low_kmer;
+		pkg.C = high_kmer;
+		//map<string, int> hh;
+		pkg.set_filter(reference_for_screen); // need to go through filter in kmergen again
+		total_ = pkg.doit(pReads, phh);
+		if(debug == 1)
+			pkg.printMer("MerP", phh);
+	}
+	
+	// Output assembled contigs
+	int switch_ = 4;
+	mf.total = total_;
+	mf.hh = phh;
+	mf.kmer_size = atoi(kmers[kmers.size()-1].c_str());
+	if(assembly_file.length() != 0){
+		ofstream ofs(assembly_file.c_str());
+		mf.outputcontigs(ofs, switch_, 1);
+		ofs.close();
+	}
+	else {
+		mf.outputcontigs(std::cout, switch_, 1);
+	}
+	
+	
+	// do the following when allpaths is ready
+	if (alternative_haplotype.length() > 0 || graph_file.length() > 0) {
+		allpaths ap;
+		ap.set_kmer_size(atoi(kmers[kmers.size()-1].c_str()));
+		ap.set_cov(min_kmer_cov);
+		ap.set_n(max_node);
+		ap.set_rcontig(mf.to_print_contigs);
+		
+		ap.set_degree(min_degree);
+		ap.set_file_name(argv[optind]);
+		ap.set_graph();
+		map<int, map<string, string> > ret_contigs;
+		ap.doit(mf.to_print_contigs, ret_contigs);
+		mf.to_print_contigs = ret_contigs;
+		int switch_ = 5;
+		if(alternative_haplotype.length() != 0){
+			ofstream ofs(alternative_haplotype.c_str());
+			mf.outputcontigs(ofs, switch_, 5);
+			ofs.close();
+		}
+		else {
+			mf.outputcontigs(std::cout, switch_, 5);
+		}
+
+	 }
+	
+}		*/
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		
 		
 		
