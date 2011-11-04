@@ -17,3 +17,4 @@ module_details:
     debian_pkg_name: tigra-sv
 
 download_link: install.html
+include_suffix: true
