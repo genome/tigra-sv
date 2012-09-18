@@ -5527,29 +5527,67 @@ public:
 	}	
 };
 
+namespace {
+	const int DEFAULT_FLANKING_SIZE = 500; // l
+	const int DEFAULT_ASSEMBLE_READ_QUAL = 1; // q
+	const int DEFAULT_NUM_MISMATCH_POOR_MAP = 5; // N
+	const int DEFAULT_HIGH_DEPTH_SKIP = 1000; // p
+	const int DEFAULT_PAD_LOCAL_REF = 200; // w
+    const int DEFAULT_MIN_SIZE_THRESHOLD = 3; // M skip those with input size smaller than 3
+    const int DEFAULT_MAX_NODE = 100; // h
+    const string DEFAULT_KMERS = "15,25";
+
+void usage() {
+        fprintf(stderr, "\n./tigra_sv <SV file> <a.bam> <b.bam> ...\n\n");
+        fprintf(stderr, "\n Or: ./tigra_sv <SV file> <bam_list_file>\n\nOptions: \n");
+        //
+        //fprintf(stderr, "    -A INT     Esimated maximal insert size [%d]\n", estimate_max_ins);
+        //
+        fprintf(stderr, "    -l INT     Flanking size for assembly [%d] bp\n", DEFAULT_FLANKING_SIZE);
+        fprintf(stderr, "    -c STR     Only assemble calls on specified chromosome\n");
+        fprintf(stderr, "    -R STR     Reference file location with the full path\n");
+        fprintf(stderr, "    -q INT     Only assemble reads with mapping quality > [%d]\n", DEFAULT_ASSEMBLE_READ_QUAL);
+        fprintf(stderr, "    -N INT     Number of mismatches required to be tagged as poorly mapped [%d]\n", DEFAULT_NUM_MISMATCH_POOR_MAP);
+        fprintf(stderr, "    -p INT     Ignore cases that have average read depth greater than [%d]\n", DEFAULT_HIGH_DEPTH_SKIP);
+        fprintf(stderr, "    -r         Write local reference to a file with .ref.fa as the suffix\n");
+        fprintf(stderr, "    -d         Dump reads to fasta files\n");
+        fprintf(stderr, "    -I STR     Save output files into an existing directory\n");
+        fprintf(stderr, "    -w INT     Pad local reference by additional [%d] bp on both ends\n", DEFAULT_PAD_LOCAL_REF);
+        fprintf(stderr, "    -b         Check when the input format is breakdancer\n");
+        fprintf(stderr, "    -M INT     Skip those calls with input size smaller than [%d]\n", DEFAULT_MIN_SIZE_THRESHOLD);
+        fprintf(stderr, "    -h INT     Maximum node to assemble, by default [%d]\n", DEFAULT_MAX_NODE);
+        fprintf(stderr, "    -k STR     List of kmer sizes to use as a comma delimited string [%s]\n", DEFAULT_KMERS.c_str());
+        //
+        //fprintf(stderr, "    -Q INT     Minimal BreakDancer score required for analysis [%d]\n", qual_threshold);
+        //fprintf(stderr, "    -L STRING  Ignore calls supported by libraries that contains (comma separated) STRING\n");
+        //
+        fprintf(stderr, "Version: %s (commit %s)\n", __g_prog_version, __g_commit_hash);
+}
+}
+
 int main(int argc, char *argv[])
 {
 	int c;
 	vector<string> bams;
 	string BreakDancer_file;
 	int estimate_max_ins = 500; // A
-	int flanking_size = 500; // l
-	int pad_local_ref = 200; // w
-	int assemble_read_qual = 1; // q
-	int num_mismatch_poor_map = 5; // N
-	int high_depth_skip = 1000; // p
-        int max_node = 100; // h
+	int flanking_size = DEFAULT_FLANKING_SIZE; // l
+	int assemble_read_qual = DEFAULT_ASSEMBLE_READ_QUAL; // q
+	int num_mismatch_poor_map = DEFAULT_NUM_MISMATCH_POOR_MAP; // N
+	int high_depth_skip = DEFAULT_HIGH_DEPTH_SKIP; // p
+	int pad_local_ref = DEFAULT_PAD_LOCAL_REF; // w
+    int min_size_threshold = DEFAULT_MIN_SIZE_THRESHOLD; // M skip those with input size smaller than 3
+    int max_node = DEFAULT_MAX_NODE; // h
+    string kmers = DEFAULT_KMERS;
 	int qual_threshold = 0; // Q
 	int breakdancer_format = 0; // b by default off
 	string library_to_skip(""); // L
 	string datadir = "."; // I mandatory
 	int write_to_ref = 0; // r by default off
 	int write_to_read = 0; // d by default off
-        string chr = ""; // specify chromosome to parallelizing
-        int skip_call = 0; // z skip running calls before this number
-        int min_size_threshold = 3; // M skip those with input size smaller than 3
-	string reference_file = "/gscmnt/839/info/medseq/reference_sequences/NCBI-human-build36/all_sequences.fa"; // R reference file location; full path
-    string kmers = "15,25";
+    string chr = ""; // specify chromosome to parallelizing
+    int skip_call = 0; // z skip running calls before this number
+	string reference_file;
 	
 	while((c = getopt(argc, argv, "A:l:w:q:N:p:I:Q:L:brdR:c:M:h:k:")) >= 0){
 		switch(c) {
@@ -5559,14 +5597,14 @@ int main(int argc, char *argv[])
 			case 'q': assemble_read_qual = atoi(optarg); break;
 			case 'N': num_mismatch_poor_map = atoi(optarg); break;
 			case 'p': high_depth_skip = atoi(optarg); break;
-			case 'I': datadir = strdup(optarg); break;
+			case 'I': datadir = optarg; break;
 			case 'Q': qual_threshold = atoi(optarg); break;
-			case 'L': library_to_skip = strdup(optarg); break;
+			case 'L': library_to_skip = optarg; break;
 			case 'b': breakdancer_format = 1; break;
 			case 'r': write_to_ref = 1; break;
 			case 'd': write_to_read = 1; break;
-			case 'R': reference_file = strdup(optarg); break;
-                        case 'c': chr = strdup(optarg); break;
+			case 'R': reference_file = optarg; break;
+                        case 'c': chr = optarg; break;
                         case 'z': skip_call = atoi(optarg); break;
                         case 'M': min_size_threshold = atoi(optarg); break;          
                         case 'h': max_node = atoi(optarg); break;
@@ -5575,29 +5613,15 @@ int main(int argc, char *argv[])
 				return 1;
 		}
 	}
+
+    if (reference_file.empty()) {
+        cerr << "No value specified for required argument -R! Abort\n\n";
+        usage();
+        return 1;
+    }
 	
 	if(optind == argc){
-		fprintf(stderr, "\n./tigra_sv <SV file> <a.bam> <b.bam> ...\n\n");
-		fprintf(stderr, "\n Or: ./tigra_sv <SV file> <bam_list_file>\n\nOptions: \n");
-		//fprintf(stderr, "	-A INT		Esimated maximal insert size [%d]\n", estimate_max_ins);
-		fprintf(stderr, "	-l INT		Flanking size for assembly [%d] bp\n", flanking_size);
-                fprintf(stderr, "	-c STR          Only assemble calls on specified chromosome\n");
-		fprintf(stderr, "	-R STR		Reference file location with the full path\n");
-		fprintf(stderr, "	-q INT		Only assemble reads with mapping quality > [%d]\n", assemble_read_qual);
-		fprintf(stderr, "	-N INT		Number of mismatches required to be tagged as poorly mapped [%d]\n", num_mismatch_poor_map);
-		fprintf(stderr, "	-p INT		Ignore cases that have average read depth greater than [%d]\n", high_depth_skip);
-		fprintf(stderr, "	-r		Write local reference to a file with .ref.fa as the suffix\n");
-		fprintf(stderr, "	-d		Dump reads to fasta files\n");
-		fprintf(stderr, "	-I STR	        Save output files into an existing directory\n");
-		fprintf(stderr, "	-w INT		Pad local reference by additional [%d] bp on both ends\n", pad_local_ref);
-		fprintf(stderr, "	-b		Check when the input format is breakdancer\n");
-                fprintf(stderr, "       -M INT          Skip those calls with input size smaller than [%d]\n", min_size_threshold);
-                fprintf(stderr, "       -h INT          Maximum node to assemble, by default [%d]\n", max_node);
-                fprintf(stderr, "	-k STR		List of kmer sizes to use as a comma delimited string [%s]\n", kmers.c_str());
-		//fprintf(stderr, "	-Q INT		Minimal BreakDancer score required for analysis [%d]\n", qual_threshold);
-		//fprintf(stderr, "	-L STRING	Ignore calls supported by libraries that contains (comma separated) STRING\n");
-
-		fprintf(stderr, "Version: %s (commit %s)\n", __g_prog_version, __g_commit_hash);
+        usage();
 		return 1;
 	}
 	
