@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 2.8)
 
 project(example)
 
-set(CMAKE_INSTALL_PREFIX "/usr")
+if(NOT CMAKE_INSTALL_PREFIX)
+    set(CMAKE_INSTALL_PREFIX "/usr")
+endif()
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build-common/cmake")
 include(TestHelper)
 include(VersionHelper)
