@@ -4935,20 +4935,11 @@ public:
 		BD.close();
 	}
 	
-	int AssembleBestSV(string prefix, BD_data SV, int a, int b){
+	int AssembleBestSV(string const& chr1, int start, string const& chr2, int end, string const& type, int size, string const& ori, BD_data SV, int a, int b){
 		string a_str(itos(a));
 		string b_str(itos(b));
 		BD_data maxSV;
 		tools tl;
-		vector<string> tmp;
-		tl.split(prefix, ".", tmp);
-		string chr1 = tmp[0];
-		int start = atoi(tmp[1].c_str());
-		string chr2 = tmp[2];
-		int end = atoi(tmp[3].c_str());
-		string type = tmp[4];
-		int size = atoi(tmp[5].c_str());
-		string ori = tmp[6];
 		
 		// skip
 		int seqlen = 0;
@@ -4958,6 +4949,17 @@ public:
 		int start1, end1, start2, end2, regionsize, refsize;
 		vector<string> refs;
 		string posstr;
+
+        stringstream prefixss;
+        prefixss << chr1 << "."
+            << start << "."
+            << chr2 << "."
+            << end << "."
+            << type << "."
+            << size << "."
+            << ori;
+        string prefix(prefixss.str());
+
 		cerr << prefix << "\ta: " << a << "\tb: " << b << endl;
 		int makeup_size = 0;
 		int concatenated_pos = 0;
@@ -5488,38 +5490,28 @@ public:
 			
 			/*foreach (@start_ends){
 			 ($start,$end)=split /\,/; skip */
-			vector<string> prefixes;
-			string ori = "+-";
-			string prefix_tmp = chr1 + "." + itos(start) + "." + chr2 + "." + itos(end) + "." + type + "." + itos(size) + "." + ori;
-			prefixes.push_back(prefix_tmp);
+			vector<string> orientations;
+            vector<string> oris;
+			oris.push_back("+-");
 			
 			if(chr1.compare(chr2) != 0){
-				vector<string> oris;
 				oris.push_back("++");
 				oris.push_back("--");
 				oris.push_back("-+");
-				
-				for(int j = 0; j < oris.size(); j++){
-					ori = oris[j];
-					prefix_tmp = chr1 + "." + itos(start) + "." + chr2 + "." + itos(end) + "." + type + "." + itos(size) + "." + ori;
-					prefixes.push_back(prefix_tmp);
-				}
 			}
 			
 			if(bamsmap.size() != 0){
 				bams.clear();
 				int ret = write_to_bams(SV); // write the related bams to the vector bams
 				if(ret == 1){
-					for(int j = 0; j < prefixes.size(); j++){
-						string prefix = prefixes[j];
-						AssembleBestSV(prefix, SV, as, bs);
+					for(int j = 0; j < oris.size(); j++){
+						AssembleBestSV(chr1, start, chr2, end, type, size, oris[j], SV, as, bs);
 					}
 				}
 			}
 			else {
-				for(int j = 0; j < prefixes.size(); j++){
-					string prefix = prefixes[j];
-					AssembleBestSV(prefix, SV, as, bs);
+                for(int j = 0; j < oris.size(); j++){
+                    AssembleBestSV(chr1, start, chr2, end, type, size, oris[j], SV, as, bs);
 				}
 			}
 		}
