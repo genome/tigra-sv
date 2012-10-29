@@ -34,6 +34,7 @@
 #include <math.h>
 #include <time.h>
 #include <map>
+#include <memory>
 #include <assert.h>
 #include <sstream>
 //#include "tigra.h"
@@ -50,32 +51,16 @@
 #include "samtools.h"
 #include <sys/stat.h> 
 
-#ifdef __GNUC__
-#include <ext/hash_map>
-#else
-#include <hash_map>
-#endif
-
-
 namespace std
 {
 	using namespace __gnu_cxx;
 }
 
-
 using namespace std;
 
 string options ("");
 
-typedef struct eqstr
-{
-	bool operator()(string s1, string s2) const
-	{
-		return s1.compare(s2) == 0;
-	}
-};
-
-typedef struct test_HH
+struct test_HH
 {
   	int n;
   	int AI;
@@ -90,7 +75,46 @@ typedef struct test_HH
 	int tag2;
 };
 
-typedef struct BD_data{
+struct PrefixParams {
+    PrefixParams(
+            string const& chr1,
+            int start,
+            string const& chr2,
+            int end,
+            string const& type,
+            int size,
+            string const& ori
+            )
+        : chr1(chr1)
+        , start(start)
+        , chr2(chr2)
+        , end(end)
+        , type(type)
+        , size(size)
+        , ori(ori)
+    {
+        stringstream prefixss;
+        prefixss << chr1 << "."
+            << start << "."
+            << chr2 << "."
+            << end << "."
+            << type << "."
+            << size << "."
+            << ori;
+        prefix = prefixss.str();
+    }
+
+    string const& chr1;
+    int start;
+    string const& chr2;
+    int end;
+    string const& type;
+    int size;
+    string const& ori;
+    string prefix;
+};
+
+struct BD_data{
 	string chr1;
 	int pos1;
 	string ori1;
@@ -110,13 +134,13 @@ typedef struct BD_data{
 	string bam_related;
 };
 
-typedef struct test_data
+struct test_data
 {
 	string key2;
 	int value;
 };
 
-typedef struct read_data{
+struct read_data{
 	int32_t NM;
 	int32_t MF;
 	string name;
@@ -126,6 +150,46 @@ typedef struct read_data{
 	float PercMapped;
 };
 
+class OutputDescription {
+public:
+    OutputDescription(std::string const& path)
+        : _f(path.c_str())
+    {
+        if (!_f.is_open()) {
+            cerr << "Failed to open output description file " << path;
+            exit(1);
+        }
+
+        _f << "#Filename\tprefix\tchr1\tstart\tchr2\tend\ttype\tsize\tori\tregion_size\tpos1\tpos2\n";
+    }
+
+    void add(std::string const& path, PrefixParams const& params, int regionSize, int pos1, int pos2) {
+        string::size_type slash = path.find_last_of("/");
+        if (slash != string::npos && slash < path.size()-1)
+            _f << path.substr(slash+1);
+        else
+            _f << path;
+
+        _f << "\t" 
+            << params.prefix << "\t"
+            << params.chr1 << "\t"
+            << params.start << "\t"
+            << params.chr2 << "\t"
+            << params.end << "\t"
+            << params.type << "\t"
+            << params.size << "\t"
+            << params.ori << "\t"
+            << regionSize << "\t"
+            << pos1 << "\t"
+            << pos2 << "\n";
+    }
+
+protected:
+    std::ofstream _f;
+};
+
+// This file will describe the contig fa files
+std::auto_ptr<OutputDescription> gOutputDescription;
 
 string itos(int i){
     stringstream i_str_stream;
@@ -4521,8 +4585,14 @@ public:
 	int min_degree; // -N
 	string graph_file; // -g
 	int debug; // -d
+    PrefixParams const& prefixParams;
+    int regionSize;
+    int pos1;
+    int pos2;
 	
-	tigra(){
+	tigra(PrefixParams const& prefixParams)
+        : prefixParams(prefixParams)
+    {
 		kmer_size = "25";
 		min_kmer_cov = 3;
 		low_kmer = 2;
@@ -4644,7 +4714,6 @@ public:
 			mf.outputcontigs(std::cout, switch_, 1);
 		}
 		
-		
 		// do the following when allpaths is ready
 		if (alternative_haplotype.length() > 0 || graph_file.length() > 0) {
 			allpaths ap;
@@ -4668,8 +4737,12 @@ public:
 			else {
 				mf.outputcontigs(std::cout, switch_, 5);
 			}
-			
 		}
+
+        if (gOutputDescription.get()) {
+            gOutputDescription->add(assembly_file, prefixParams, regionSize, pos1, pos2);
+            gOutputDescription->add(alternative_haplotype, prefixParams, regionSize, pos1, pos2);
+        }
 	}
 };		
 
@@ -4934,12 +5007,21 @@ public:
 		}
 		BD.close();
 	}
-	
-	int AssembleBestSV(string const& chr1, int start, string const& chr2, int end, string const& type, int size, string const& ori, BD_data SV, int a, int b){
+
+	int AssembleBestSV(PrefixParams const& prefixParams, BD_data SV, int a, int b){
 		string a_str(itos(a));
 		string b_str(itos(b));
 		BD_data maxSV;
 		tools tl;
+
+        string const& chr1 = prefixParams.chr1;
+        int start = prefixParams.start;
+        string const& chr2 = prefixParams.chr2;
+        int end = prefixParams.end;
+        string const& type = prefixParams.type;
+        int size = prefixParams.size;
+        string const& ori = prefixParams.ori;
+        string const& prefix = prefixParams.prefix;
 		
 		// skip
 		int seqlen = 0;
@@ -4950,21 +5032,11 @@ public:
 		vector<string> refs;
 		string posstr;
 
-        stringstream prefixss;
-        prefixss << chr1 << "."
-            << start << "."
-            << chr2 << "."
-            << end << "."
-            << type << "."
-            << size << "."
-            << ori;
-        string prefix(prefixss.str());
-
 		cerr << prefix << "\ta: " << a << "\tb: " << b << endl;
 		int makeup_size = 0;
 		int concatenated_pos = 0;
 		vector<string> samtools;
-		string pos_1, pos_2;
+		int pos_1, pos_2;
 		for (int i = 0; i < bams.size(); i++) {
 			string fbam = bams[i];
 			if(type.compare("ITX") == 0){
@@ -4997,8 +5069,8 @@ public:
 					refsize = end - start + 1 + 2*flanking_size + 2*pad_local_ref;
 				}
 				posstr = chr1 + "_" + itos(start1 - pad_local_ref) + "_" + chr1 + "_" + itos(start1 - pad_local_ref) + "_" + type + "_" + itos(size) + "_" + ori; // this may contain a bug
-				pos_1 = itos(max(start1 - pad_local_ref,0));
-				pos_2 = itos(max(start1 - pad_local_ref,0));
+				pos_1 = max(start1 - pad_local_ref,0);
+				pos_2 = max(start1 - pad_local_ref,0);
 				// samtools view bam chr1:start1-end2;
 				//string tmp = "samtools view " + fbam + " " + chr1 + ":" + itos(start1) + "-" + itos(end2);
 				//samtools.push_back(tmp);
@@ -5023,8 +5095,8 @@ public:
 						refsize = 2*(flanking_size + pad_local_ref) + 1;
 					}					
 					posstr = chr1 + "_" + itos(start - flanking_size - pad_local_ref) + "_" + chr2 + "_" + itos(end - flanking_size - pad_local_ref) + "_" + type + "_" + itos(size) + "_" + ori;
-					pos_1 = itos(max(start - flanking_size - pad_local_ref,0));
-					pos_2 = itos(max(end - flanking_size - pad_local_ref,0));
+					pos_1 = max(start - flanking_size - pad_local_ref,0);
+					pos_2 = max(end - flanking_size - pad_local_ref,0);
 				}
 				else if(size > 99999){
 					if(refs.size() == 0){
@@ -5046,8 +5118,8 @@ public:
 					makeup_size = (end - flanking_size) - (start + flanking_size) - 1;
 					concatenated_pos = 2*flanking_size + pad_local_ref;
 					posstr = chr1 + "_" + itos(start - flanking_size - pad_local_ref) + "_" + chr2 + "_" + itos(end - 3*flanking_size - pad_local_ref) + "_" + type + "_" + itos(size) + "_" + ori;
-					pos_1 = itos(max(start - flanking_size - pad_local_ref,0));
-					pos_2 = itos(max(end - 3*flanking_size - pad_local_ref,0));
+					pos_1 = max(start - flanking_size - pad_local_ref,0);
+					pos_2 = max(end - 3*flanking_size - pad_local_ref,0);
 				}
 				else {
 					if(refs.size() == 0){
@@ -5060,8 +5132,8 @@ public:
 						refsize = end - start + 1 + 2*(flanking_size + pad_local_ref);	
 					}
 					posstr = chr1 + "_" + itos(start1 - pad_local_ref) + "_" + chr1 + "_" + itos(start1 - pad_local_ref) + "_" + type + "_" + itos(size) + "_" + ori;
-					pos_1 = itos(max((start1 - pad_local_ref),0));
-					pos_2 = itos(max(start1 - pad_local_ref,0));
+					pos_1 = max((start1 - pad_local_ref),0);
+					pos_2 = max(start1 - pad_local_ref,0);
 				}
 				
 				string reg1, reg2;
@@ -5191,7 +5263,7 @@ public:
 		
 		vector<string> buffer;
 		ifstream ifile(freads.c_str());
-		if(1){//! ifile || ifile){ // no I skip
+		if(1){
 			//list<string> buffer;
 			map<string, int> uniqreadnames;
 			for (int i = 0; i < samtools.size(); i+=2) {
@@ -5351,9 +5423,14 @@ public:
 		}
 		cerr << "#Reads:"<< nreads << "\t#SVReads:" << nSVreads << "\tRegionSize:" << regionsize << "\tAvgCoverage:" << avgdepth << endl;
 		// Assemble
-		tigra TG;
-		TG.alternative_haplotype = datadir + "/" + prefix + /*".a" + a_str + ".b" + b_str +*/  "." + itos(regionsize) + "." + pos_1 + "." + pos_2 + ".fa.contigs.het.fa";
-		TG.assembly_file = datadir + "/" + prefix + /*".a" + a_str + ".b" + b_str +*/ "." + itos(regionsize)  + "." + pos_1 + "." + pos_2 + ".fa.contigs.fa";
+		tigra TG(prefixParams);
+        TG.regionSize = regionsize;
+        TG.pos1 = pos_1;
+        TG.pos2 = pos_2;
+        stringstream baseFn;
+        baseFn << datadir << "/" << prefix << "." << regionsize << "." << pos_1 << "." << pos_2;
+		TG.alternative_haplotype = baseFn.str() + ".fa.contigs.het.fa";
+		TG.assembly_file = baseFn.str() + ".fa.contigs.fa";
 		//TG.reference_for_screen = datadir + "/" + prefix + ".ref.fa";
 		TG.reference_for_screen = ref_string;
 		TG.estimate_STR = "SV";
@@ -5505,13 +5582,15 @@ public:
 				int ret = write_to_bams(SV); // write the related bams to the vector bams
 				if(ret == 1){
 					for(int j = 0; j < oris.size(); j++){
-						AssembleBestSV(chr1, start, chr2, end, type, size, oris[j], SV, as, bs);
+                        PrefixParams pp(chr1, start, chr2, end, type, size, oris[j]);
+						AssembleBestSV(pp, SV, as, bs);
 					}
 				}
 			}
 			else {
                 for(int j = 0; j < oris.size(); j++){
-                    AssembleBestSV(chr1, start, chr2, end, type, size, oris[j], SV, as, bs);
+                    PrefixParams pp(chr1, start, chr2, end, type, size, oris[j]);
+                    AssembleBestSV(pp, SV, as, bs);
 				}
 			}
 		}
@@ -5549,6 +5628,7 @@ void usage() {
         fprintf(stderr, "    -M INT     Skip those calls with input size smaller than [%d]\n", DEFAULT_MIN_SIZE_THRESHOLD);
         fprintf(stderr, "    -h INT     Maximum node to assemble, by default [%d]\n", DEFAULT_MAX_NODE);
         fprintf(stderr, "    -k STR     List of kmer sizes to use as a comma delimited string [%s]\n", DEFAULT_KMERS.c_str());
+        fprintf(stderr, "    -D STR     Output description file [output_dir/output_description.tsv]\n");
         //
         //fprintf(stderr, "    -Q INT     Minimal BreakDancer score required for analysis [%d]\n", qual_threshold);
         //fprintf(stderr, "    -L STRING  Ignore calls supported by libraries that contains (comma separated) STRING\n");
@@ -5580,8 +5660,9 @@ int main(int argc, char *argv[])
     string chr = ""; // specify chromosome to parallelizing
     int skip_call = 0; // z skip running calls before this number
 	string reference_file;
+    string out_desc_file;
 	
-	while((c = getopt(argc, argv, "A:l:w:q:N:p:I:Q:L:brdR:c:M:h:k:")) >= 0){
+	while((c = getopt(argc, argv, "A:l:w:q:N:p:I:Q:L:brdR:c:M:h:k:D:")) >= 0){
 		switch(c) {
 			case 'A': estimate_max_ins = atoi(optarg); break;
 			case 'l': flanking_size = atoi(optarg); break;
@@ -5596,6 +5677,7 @@ int main(int argc, char *argv[])
 			case 'r': write_to_ref = 1; break;
 			case 'd': write_to_read = 1; break;
 			case 'R': reference_file = optarg; break;
+            case 'D': out_desc_file = optarg; break;
                         case 'c': chr = optarg; break;
                         case 'z': skip_call = atoi(optarg); break;
                         case 'M': min_size_threshold = atoi(optarg); break;          
@@ -5616,7 +5698,11 @@ int main(int argc, char *argv[])
         usage();
 		return 1;
 	}
-	
+
+    if (out_desc_file.empty())
+        out_desc_file = datadir + "/output_description.tsv";
+    gOutputDescription.reset(new OutputDescription(out_desc_file));
+
 	assemble AS;
 	AS.estimate_max_ins = estimate_max_ins;
 	AS.flanking_size = flanking_size;
